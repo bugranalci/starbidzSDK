@@ -63,6 +63,7 @@ model AdUnit {
   name        String
   format      AdFormat
   placementId String   @unique @default(cuid())
+  floorPrice  Float    @default(1.0)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

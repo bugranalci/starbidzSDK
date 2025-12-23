@@ -18,6 +18,7 @@ export default function NewAdUnitPage() {
     const data = {
       name: formData.get('name'),
       format: formData.get('format'),
+      floorPrice: parseFloat(formData.get('floorPrice') as string) || 1.0,
       width: format === 'BANNER' ? parseInt(formData.get('width') as string) : null,
       height: format === 'BANNER' ? parseInt(formData.get('height') as string) : null,
     }
@@ -78,6 +79,25 @@ export default function NewAdUnitPage() {
             <option value="INTERSTITIAL">Interstitial</option>
             <option value="REWARDED">Rewarded</option>
           </select>
+        </div>
+
+        <div>
+          <label htmlFor="floorPrice" className="block text-sm font-medium mb-2">
+            Floor Price (CPM in USD)
+          </label>
+          <input
+            id="floorPrice"
+            name="floorPrice"
+            type="number"
+            step="0.01"
+            min="0"
+            defaultValue={format === 'REWARDED' ? '8.00' : format === 'INTERSTITIAL' ? '5.00' : '1.00'}
+            className="w-full px-3 py-2 border rounded-md"
+            placeholder="1.00"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Minimum bid price. Suggested: Banner $1-2, Interstitial $5-8, Rewarded $8-15
+          </p>
         </div>
 
         {format === 'BANNER' && (

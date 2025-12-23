@@ -7,6 +7,7 @@ import { z } from 'zod'
 const createAdUnitSchema = z.object({
   name: z.string().min(1).max(100),
   format: z.enum(['BANNER', 'INTERSTITIAL', 'REWARDED']),
+  floorPrice: z.number().min(0).optional().default(1.0),
   width: z.number().nullable().optional(),
   height: z.number().nullable().optional(),
 })
@@ -70,6 +71,7 @@ export async function POST(
         appId,
         name: data.name,
         format: data.format,
+        floorPrice: data.floorPrice,
         placementId: generatePlacementId(),
         width: data.format === 'BANNER' ? data.width : null,
         height: data.format === 'BANNER' ? data.height : null,

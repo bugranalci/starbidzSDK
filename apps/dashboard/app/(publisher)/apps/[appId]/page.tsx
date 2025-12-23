@@ -2,6 +2,7 @@ import { getOrCreateUser } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { AdUnitActions } from '@/components/ad-unit-actions'
 
 export default async function AppDetailPage({
   params,
@@ -112,14 +113,16 @@ export default async function AppDetailPage({
                     <p className="text-sm text-gray-500">
                       {unit.format}
                       {unit.width && unit.height && ` • ${unit.width}x${unit.height}`}
+                      {' • '}
+                      <span className="text-green-600 font-medium">${unit.floorPrice.toFixed(2)} CPM</span>
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="flex items-center gap-4">
                     <code className="text-xs bg-gray-100 px-2 py-1 rounded">
                       {unit.placementId}
                     </code>
                     <span
-                      className={`ml-4 px-2 py-1 rounded text-xs ${
+                      className={`px-2 py-1 rounded text-xs ${
                         unit.isActive
                           ? 'bg-green-100 text-green-800'
                           : 'bg-gray-100 text-gray-800'
@@ -127,6 +130,11 @@ export default async function AppDetailPage({
                     >
                       {unit.isActive ? 'Active' : 'Inactive'}
                     </span>
+                    <AdUnitActions
+                      appId={app.id}
+                      unitId={unit.id}
+                      unitName={unit.name}
+                    />
                   </div>
                 </div>
               </div>
