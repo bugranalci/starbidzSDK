@@ -1,0 +1,21 @@
+DESCRIPTION >
+    Statistics broken down by ad format
+
+NODE format_aggregation
+SQL >
+    SELECT
+        format,
+        countIf(event_type = 'BID_REQUEST') as requests,
+        countIf(event_type = 'IMPRESSION') as impressions,
+        sumIf(win_price, event_type = 'WIN') as revenue,
+        if(impressions > 0, revenue / impressions * 1000, 0) as avg_cpm
+    FROM ad_events
+    WHERE
+        timestamp >= parseDateTimeBestEffort({{String(start_date, '2024-01-01')}})
+        AND timestamp < parseDateTimeBestEffort({{String(end_date, '2024-12-31')}}) + INTERVAL 1 DAY
+        AND format IS NOT NULL
+        AND ({{String(app_key, '')}} = '' OR app_key = {{String(app_key, '')}})
+    GROUP BY format
+    ORDER BY revenue DESC
+
+TYPE endpoint

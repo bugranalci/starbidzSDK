@@ -1,0 +1,22 @@
+DESCRIPTION >
+    Statistics broken down by country
+
+NODE country_aggregation
+SQL >
+    SELECT
+        country,
+        countIf(event_type = 'BID_REQUEST') as requests,
+        countIf(event_type = 'IMPRESSION') as impressions,
+        sumIf(win_price, event_type = 'WIN') as revenue,
+        if(requests > 0, countIf(event_type = 'BID_RESPONSE' AND demand_source IS NOT NULL) / requests * 100, 0) as fill_rate
+    FROM ad_events
+    WHERE
+        timestamp >= parseDateTimeBestEffort({{String(start_date, '2024-01-01')}})
+        AND timestamp < parseDateTimeBestEffort({{String(end_date, '2024-12-31')}}) + INTERVAL 1 DAY
+        AND country IS NOT NULL
+        AND ({{String(app_key, '')}} = '' OR app_key = {{String(app_key, '')}})
+    GROUP BY country
+    ORDER BY revenue DESC
+    LIMIT {{Int32(limit, 20)}}
+
+TYPE endpoint

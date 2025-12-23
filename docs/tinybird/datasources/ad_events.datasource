@@ -1,0 +1,24 @@
+DESCRIPTION >
+    Raw ad events data source - stores all tracking events
+
+SCHEMA >
+    `timestamp` DateTime `json:$.timestamp`,
+    `event_type` String `json:$.event_type`,
+    `placement_id` String `json:$.placement_id`,
+    `app_key` String `json:$.app_key`,
+    `demand_source` Nullable(String) `json:$.demand_source`,
+    `bid_price` Nullable(Float64) `json:$.bid_price`,
+    `win_price` Nullable(Float64) `json:$.win_price`,
+    `country` Nullable(String) `json:$.country`,
+    `device_type` Nullable(String) `json:$.device_type`,
+    `os` Nullable(String) `json:$.os`,
+    `os_version` Nullable(String) `json:$.os_version`,
+    `app_version` Nullable(String) `json:$.app_version`,
+    `format` Nullable(String) `json:$.format`,
+    `latency_ms` Nullable(Int32) `json:$.latency_ms`,
+    `request_id` Nullable(String) `json:$.request_id`
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "timestamp, event_type, app_key, placement_id"
+ENGINE_TTL "timestamp + toIntervalDay(90)"

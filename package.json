@@ -1,0 +1,23 @@
+{
+  "name": "starbidz",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "db:generate": "turbo run db:generate --filter=@starbidz/dashboard",
+    "db:push": "turbo run db:push --filter=@starbidz/dashboard",
+    "db:studio": "turbo run db:studio --filter=@starbidz/dashboard"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  },
+  "packageManager": "pnpm@9.15.1",
+  "engines": {
+    "node": ">=18"
+  }
+}

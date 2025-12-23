@@ -1,0 +1,216 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== AUTH & USERS ====================
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  role      UserRole @default(PUBLISHER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  publisher Publisher?
+}
+
+enum UserRole {
+  ADMIN
+  PUBLISHER
+}
+
+// ==================== PUBLISHER ENTITIES ====================
+
+model Publisher {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  company   String?
+  apps      App[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model App {
+  id          String        @id @default(cuid())
+  publisherId String
+  publisher   Publisher     @relation(fields: [publisherId], references: [id], onDelete: Cascade)
+  name        String
+  bundleId    String
+  platform    Platform
+  storeUrl    String?
+  appKey      String        @unique @default(cuid())
+  mediation   MediationType
+  isActive    Boolean       @default(true)
+  adUnits     AdUnit[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([publisherId, bundleId, platform])
+}
+
+model AdUnit {
+  id          String   @id @default(cuid())
+  appId       String
+  app         App      @relation(fields: [appId], references: [id], onDelete: Cascade)
+  name        String
+  format      AdFormat
+  placementId String   @unique @default(cuid())
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // For banner ads
+  width  Int?
+  height Int?
+}
+
+enum Platform {
+  ANDROID
+  IOS
+  BOTH
+}
+
+enum MediationType {
+  MAX
+  ADMOB
+  LEVELPLAY
+}
+
+enum AdFormat {
+  BANNER
+  INTERSTITIAL
+  REWARDED
+}
+
+// ==================== DEMAND SOURCES (Admin) ====================
+
+model DemandSource {
+  id        String     @id @default(cuid())
+  type      DemandType
+  name      String
+  isActive  Boolean    @default(true)
+  priority  Int        @default(1)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Polymorphic relations
+  gamConfig   GamConfig?
+  unityConfig UnityConfig?
+  fyberConfig FyberConfig?
+  ortbConfig  OrtbConfig?
+
+  adUnits DemandAdUnit[]
+}
+
+enum DemandType {
+  GAM
+  UNITY
+  FYBER
+  ORTB
+}
+
+// GAM/MCM Configuration
+model GamConfig {
+  id             String       @id @default(cuid())
+  demandSourceId String       @unique
+  demandSource   DemandSource @relation(fields: [demandSourceId], references: [id], onDelete: Cascade)
+  networkCode    String
+  credentials    String?      // Encrypted service account JSON
+}
+
+// Unity Ads Configuration
+model UnityConfig {
+  id             String       @id @default(cuid())
+  demandSourceId String       @unique
+  demandSource   DemandSource @relation(fields: [demandSourceId], references: [id], onDelete: Cascade)
+  organizationId String
+  gameIdAndroid  String
+  gameIdIos      String
+  apiKey         String?      // Encrypted
+}
+
+// Fyber Configuration
+model FyberConfig {
+  id             String       @id @default(cuid())
+  demandSourceId String       @unique
+  demandSource   DemandSource @relation(fields: [demandSourceId], references: [id], onDelete: Cascade)
+  appId          String
+  securityToken  String       // Encrypted
+}
+
+// OpenRTB DSP Configuration
+model OrtbConfig {
+  id             String       @id @default(cuid())
+  demandSourceId String       @unique
+  demandSource   DemandSource @relation(fields: [demandSourceId], references: [id], onDelete: Cascade)
+  endpoint       String
+  seatId         String?
+  authHeader     String?
+  authValue      String?      // Encrypted
+  timeout        Int          @default(200)
+
+  // Format-based configuration
+  bannerEnabled       Boolean @default(true)
+  bannerFloor         Float   @default(1.0)
+  interstitialEnabled Boolean @default(true)
+  interstitialFloor   Float   @default(5.0)
+  rewardedEnabled     Boolean @default(true)
+  rewardedFloor       Float   @default(8.0)
+}
+
+// Individual ad units for GAM/Unity/Fyber
+model DemandAdUnit {
+  id             String       @id @default(cuid())
+  demandSourceId String
+  demandSource   DemandSource @relation(fields: [demandSourceId], references: [id], onDelete: Cascade)
+
+  externalId String   // GAM path, Unity placement ID, Fyber spot ID
+  format     AdFormat
+  bidFloor   Float
+
+  // Banner specific
+  width  Int?
+  height Int?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([demandSourceId, externalId])
+}
+
+// ==================== EVENTS & REPORTING ====================
+
+model AdEvent {
+  id           String    @id @default(cuid())
+  eventType    EventType
+  placementId  String
+  demandSource String?
+  bidPrice     Float?
+  winPrice     Float?
+  country      String?
+  deviceType   String?
+  osVersion    String?
+  appVersion   String?
+  createdAt    DateTime  @default(now())
+
+  @@index([placementId, createdAt])
+  @@index([demandSource, createdAt])
+}
+
+enum EventType {
+  BID_REQUEST
+  BID_RESPONSE
+  WIN
+  IMPRESSION
+  CLICK
+  COMPLETE
+}

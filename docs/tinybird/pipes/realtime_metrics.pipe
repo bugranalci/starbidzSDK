@@ -1,0 +1,20 @@
+DESCRIPTION >
+    Real-time metrics for the last hour
+
+NODE realtime_aggregation
+SQL >
+    SELECT
+        countIf(event_type = 'BID_REQUEST') / 60.0 as requests_per_minute,
+        if(
+            countIf(event_type = 'BID_REQUEST') > 0,
+            countIf(event_type = 'BID_RESPONSE' AND demand_source IS NOT NULL) / countIf(event_type = 'BID_REQUEST') * 100,
+            0
+        ) as fill_rate,
+        avgIf(latency_ms, event_type = 'BID_RESPONSE' AND latency_ms IS NOT NULL) as avg_latency_ms,
+        uniqIf(demand_source, event_type = 'BID_RESPONSE' AND demand_source IS NOT NULL) as active_demand_sources
+    FROM ad_events
+    WHERE
+        timestamp >= now() - INTERVAL 1 HOUR
+        AND ({{String(app_key, '')}} = '' OR app_key = {{String(app_key, '')}})
+
+TYPE endpoint

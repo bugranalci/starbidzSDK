@@ -1,0 +1,23 @@
+DESCRIPTION >
+    Statistics broken down by demand source
+
+NODE demand_aggregation
+SQL >
+    SELECT
+        demand_source,
+        countIf(event_type = 'BID_RESPONSE' AND demand_source IS NOT NULL) as requests,
+        countIf(event_type = 'WIN') as wins,
+        countIf(event_type = 'IMPRESSION') as impressions,
+        sumIf(win_price, event_type = 'WIN') as revenue,
+        avgIf(bid_price, event_type = 'BID_RESPONSE' AND bid_price IS NOT NULL) as avg_bid,
+        if(requests > 0, wins / requests * 100, 0) as win_rate
+    FROM ad_events
+    WHERE
+        timestamp >= parseDateTimeBestEffort({{String(start_date, '2024-01-01')}})
+        AND timestamp < parseDateTimeBestEffort({{String(end_date, '2024-12-31')}}) + INTERVAL 1 DAY
+        AND demand_source IS NOT NULL
+        AND ({{String(app_key, '')}} = '' OR app_key = {{String(app_key, '')}})
+    GROUP BY demand_source
+    ORDER BY revenue DESC
+
+TYPE endpoint

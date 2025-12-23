@@ -1,0 +1,85 @@
+// This schema mirrors the dashboard schema for database access
+// Both apps share the same database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== DEMAND SOURCES ====================
+
+model DemandSource {
+  id        String     @id @default(cuid())
+  type      DemandType
+  name      String
+  isActive  Boolean    @default(true)
+  priority  Int        @default(1)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Polymorphic relations
+  gamConfig   GamConfig?
+  unityConfig UnityConfig?
+  fyberConfig FyberConfig?
+  ortbConfig  OrtbConfig?
+}
+
+enum DemandType {
+  GAM
+  UNITY
+  FYBER
+  ORTB
+}
+
+// GAM/MCM Configuration
+model GamConfig {
+  id             String       @id @default(cuid())
+  demandSourceId String       @unique
+  demandSource   DemandSource @relation(fields: [demandSourceId], references: [id], onDelete: Cascade)
+  networkCode    String
+  credentials    String?      // Encrypted service account JSON
+}
+
+// Unity Ads Configuration
+model UnityConfig {
+  id             String       @id @default(cuid())
+  demandSourceId String       @unique
+  demandSource   DemandSource @relation(fields: [demandSourceId], references: [id], onDelete: Cascade)
+  organizationId String
+  gameIdAndroid  String
+  gameIdIos      String
+  apiKey         String?      // Encrypted
+}
+
+// Fyber Configuration
+model FyberConfig {
+  id             String       @id @default(cuid())
+  demandSourceId String       @unique
+  demandSource   DemandSource @relation(fields: [demandSourceId], references: [id], onDelete: Cascade)
+  appId          String
+  securityToken  String       // Encrypted
+}
+
+// OpenRTB DSP Configuration
+model OrtbConfig {
+  id             String       @id @default(cuid())
+  demandSourceId String       @unique
+  demandSource   DemandSource @relation(fields: [demandSourceId], references: [id], onDelete: Cascade)
+  endpoint       String
+  seatId         String?
+  authHeader     String?
+  authValue      String?      // Encrypted
+  timeout        Int          @default(200)
+
+  // Format-based configuration
+  bannerEnabled       Boolean @default(true)
+  bannerFloor         Float   @default(1.0)
+  interstitialEnabled Boolean @default(true)
+  interstitialFloor   Float   @default(5.0)
+  rewardedEnabled     Boolean @default(true)
+  rewardedFloor       Float   @default(8.0)
+}
