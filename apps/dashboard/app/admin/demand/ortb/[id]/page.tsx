@@ -2,8 +2,8 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/db"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { DemandActions } from "@/components/admin/demand-actions"
 
 async function getOrtbSource(id: string) {
   const source = await prisma.demandSource.findUnique({
@@ -33,17 +33,13 @@ export default async function OrtbDetailPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <Link href="/demand/ortb" className="text-muted-foreground hover:text-foreground">
+          <Link href="/admin/demand/ortb" className="text-muted-foreground hover:text-foreground">
             ← Back to OpenRTB DSPs
           </Link>
           <h1 className="text-3xl font-bold mt-2">{source.name}</h1>
           <p className="text-muted-foreground">OpenRTB DSP Configuration</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline">Edit</Button>
-          <Button variant="outline">Test Connection</Button>
-          <Button variant="destructive">Delete</Button>
-        </div>
+        <DemandActions sourceId={source.id} sourceName={source.name} sourceType="ortb" />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

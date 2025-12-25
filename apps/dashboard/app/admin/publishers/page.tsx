@@ -8,7 +8,13 @@ import { Badge } from "@/components/ui/badge"
 async function getPublishers() {
   const publishers = await prisma.publisher.findMany({
     include: {
-      apps: true,
+      user: true,
+      apps: {
+        select: {
+          id: true,
+          isActive: true,
+        },
+      },
       _count: {
         select: { apps: true },
       },
@@ -19,12 +25,12 @@ async function getPublishers() {
 }
 
 async function getStats() {
-  const [totalPublishers, activePublishers, totalApps] = await Promise.all([
+  const [totalPublishers, totalApps, activeApps] = await Promise.all([
     prisma.publisher.count(),
-    prisma.publisher.count({ where: { isActive: true } }),
     prisma.app.count(),
+    prisma.app.count({ where: { isActive: true } }),
   ])
-  return { totalPublishers, activePublishers, totalApps }
+  return { totalPublishers, totalApps, activeApps }
 }
 
 export default async function PublishersPage() {
@@ -49,14 +55,14 @@ export default async function PublishersPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Active Publishers</CardDescription>
-            <CardTitle className="text-3xl">{stats.activePublishers}</CardTitle>
+            <CardDescription>Total Apps</CardDescription>
+            <CardTitle className="text-3xl">{stats.totalApps}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Total Apps</CardDescription>
-            <CardTitle className="text-3xl">{stats.totalApps}</CardTitle>
+            <CardDescription>Active Apps</CardDescription>
+            <CardTitle className="text-3xl">{stats.activeApps}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
@@ -81,46 +87,43 @@ export default async function PublishersPage() {
                 <TableHead>Publisher</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Apps</TableHead>
-                <TableHead>API Key</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Active Apps</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {publishers.map((publisher) => (
-                <TableRow key={publisher.id}>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{publisher.name}</p>
-                      <p className="text-sm text-muted-foreground">{publisher.company || "-"}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>{publisher.email}</TableCell>
-                  <TableCell>{publisher._count.apps}</TableCell>
-                  <TableCell>
-                    <code className="text-xs bg-muted px-2 py-1 rounded">
-                      {publisher.apiKey?.slice(0, 12)}...
-                    </code>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={publisher.isActive ? "success" : "secondary"}>
-                      {publisher.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(publisher.createdAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Link href={`/publishers/${publisher.id}`}>
-                      <Button variant="ghost" size="sm">View</Button>
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {publishers.map((publisher) => {
+                const activeAppsCount = publisher.apps.filter(app => app.isActive).length
+                return (
+                  <TableRow key={publisher.id}>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{publisher.user.name || 'No Name'}</p>
+                        <p className="text-sm text-muted-foreground">{publisher.company || "-"}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>{publisher.user.email}</TableCell>
+                    <TableCell>{publisher._count.apps}</TableCell>
+                    <TableCell>
+                      <Badge variant={activeAppsCount > 0 ? "success" : "secondary"}>
+                        {activeAppsCount} active
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(publisher.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link href={`/admin/publishers/${publisher.id}`}>
+                        <Button variant="ghost" size="sm">View</Button>
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
               {publishers.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center text-muted-foreground">
                     No publishers registered yet.
                   </TableCell>
                 </TableRow>

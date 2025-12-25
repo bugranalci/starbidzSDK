@@ -52,6 +52,18 @@ export default async function AdminLayout({
                 >
                   Publishers
                 </Link>
+                <Link
+                  href="/admin/reports"
+                  className="text-gray-300 hover:text-white px-3 py-2"
+                >
+                  Reports
+                </Link>
+                <Link
+                  href="/admin/system"
+                  className="text-gray-300 hover:text-white px-3 py-2"
+                >
+                  System
+                </Link>
               </div>
             </div>
             <div className="flex items-center gap-4">

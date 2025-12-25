@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { AdUnitActions } from '@/components/ad-unit-actions'
+import { AppStatusToggle } from '@/components/app-status-toggle'
 
 export default async function AppDetailPage({
   params,
@@ -39,15 +40,12 @@ export default async function AppDetailPage({
           <h1 className="text-2xl font-bold">{app.name}</h1>
           <p className="text-gray-500">{app.bundleId}</p>
         </div>
-        <span
-          className={`px-3 py-1 rounded text-sm ${
-            app.isActive
-              ? 'bg-green-100 text-green-800'
-              : 'bg-gray-100 text-gray-800'
-          }`}
-        >
-          {app.isActive ? 'Active' : 'Inactive'}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500">
+            {app.isActive ? 'Active' : 'Inactive'}
+          </span>
+          <AppStatusToggle appId={app.id} isActive={app.isActive} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -114,7 +112,7 @@ export default async function AppDetailPage({
                       {unit.format}
                       {unit.width && unit.height && ` • ${unit.width}x${unit.height}`}
                       {' • '}
-                      <span className="text-green-600 font-medium">${unit.floorPrice.toFixed(2)} CPM</span>
+                      <span className="text-green-600 font-medium">${(unit.floorPrice ?? 1.0).toFixed(2)} CPM</span>
                     </p>
                   </div>
                   <div className="flex items-center gap-4">

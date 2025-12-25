@@ -36,6 +36,18 @@ export default async function PublisherLayout({
                 >
                   Apps
                 </Link>
+                <Link
+                  href="/reports"
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2"
+                >
+                  Reports
+                </Link>
+                <Link
+                  href="/settings"
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2"
+                >
+                  Settings
+                </Link>
               </div>
             </div>
             <div className="flex items-center">

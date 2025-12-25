@@ -2,9 +2,9 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/db"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { DemandActions, AddAdUnitButton } from "@/components/admin/demand-actions"
 
 async function getGamSource(id: string) {
   const source = await prisma.demandSource.findUnique({
@@ -36,17 +36,14 @@ export default async function GamDetailPage({
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <Link href="/demand/gam" className="text-muted-foreground hover:text-foreground">
+            <Link href="/admin/demand/gam" className="text-muted-foreground hover:text-foreground">
               ← Back to GAM
             </Link>
           </div>
           <h1 className="text-3xl font-bold">{source.name}</h1>
           <p className="text-muted-foreground">GAM Account Details</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline">Edit</Button>
-          <Button variant="destructive">Delete</Button>
-        </div>
+        <DemandActions sourceId={source.id} sourceName={source.name} sourceType="gam" />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -120,7 +117,7 @@ export default async function GamDetailPage({
               <CardTitle>Ad Units</CardTitle>
               <CardDescription>GAM ad units configured for this account</CardDescription>
             </div>
-            <Button size="sm">Add Ad Unit</Button>
+            <AddAdUnitButton sourceId={source.id} sourceType="gam" />
           </div>
         </CardHeader>
         <CardContent>
