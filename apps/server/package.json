@@ -14,11 +14,11 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@elysiajs/cors": "^1.1.1",
+    "@elysiajs/cors": "^1.4.1",
     "@elysiajs/swagger": "^1.1.6",
     "@prisma/client": "^6.1.0",
     "@starbidz/shared": "workspace:*",
-    "@upstash/redis": "^1.34.3",
+    "@upstash/redis": "^1.36.0",
     "elysia": "^1.1.25"
   },
   "devDependencies": {
