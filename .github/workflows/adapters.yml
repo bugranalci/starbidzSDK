@@ -34,7 +34,7 @@ jobs:
           gradle-version: '8.5'
 
       - name: Cache Gradle
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -103,7 +103,7 @@ jobs:
           xcode-version: '15.2'
 
       - name: Cache Swift packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/Library/Caches/org.swift.swiftpm
