@@ -66,8 +66,8 @@ export default async function FyberDetailPage({
               </Badge>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Publisher ID</span>
-              <code>{config?.publisherId || "-"}</code>
+              <span className="text-muted-foreground">App ID</span>
+              <code>{config?.appId || "-"}</code>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Priority</span>
