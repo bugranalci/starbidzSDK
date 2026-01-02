@@ -1,7 +1,13 @@
 # Starbidz Server Dockerfile for Railway
-FROM oven/bun:1.1-alpine
+FROM oven/bun:1.1-debian
 
 WORKDIR /app
+
+# Install Node.js for Prisma
+RUN apt-get update && apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
