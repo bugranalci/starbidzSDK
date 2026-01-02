@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    `maven-publish`
 }
 
 android {
@@ -41,4 +42,24 @@ dependencies {
 
     // ironSource LevelPlay SDK
     compileOnly(libs.ironsource.sdk)
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components["release"])
+
+                groupId = project.property("STARBIDZ_GROUP").toString()
+                artifactId = "starbidz-levelplay"
+                version = project.property("STARBIDZ_VERSION").toString()
+
+                pom {
+                    name.set("Starbidz LevelPlay Adapter")
+                    description.set("ironSource LevelPlay adapter for Starbidz SDK")
+                    url.set("https://github.com/AjoPay/Starbidz-SDK-Android")
+                }
+            }
+        }
+    }
 }

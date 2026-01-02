@@ -5,6 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  getDailyStats,
+  getFormatStats,
+  getDateRange,
+  isAnalyticsConfigured,
+  type DailyStats,
+  type FormatStats,
+} from "@/lib/analytics"
 
 async function getPublisherStats(publisherId: string) {
   const apps = await prisma.app.findMany({
@@ -18,11 +26,39 @@ async function getPublisherStats(publisherId: string) {
   const totalAdUnits = apps.reduce((acc, app) => acc + app.adUnits.length, 0)
   const activeApps = apps.filter(app => app.isActive).length
 
-  // Get recent events (mock data for now - would come from analytics)
-  const recentStats = {
-    impressions: Math.floor(Math.random() * 100000),
-    clicks: Math.floor(Math.random() * 5000),
-    revenue: (Math.random() * 1000).toFixed(2),
+  // Get real analytics data
+  const { startDate, endDate } = getDateRange('30d')
+  const analyticsConfigured = await isAnalyticsConfigured()
+
+  let dailyStats: DailyStats[] = []
+  let formatStats: FormatStats[] = []
+  let impressions = 0
+  let clicks = 0
+  let revenue = 0
+  const appStats: Record<string, { impressions: number; revenue: number }> = {}
+
+  if (analyticsConfigured) {
+    // Fetch real data from Tinybird via bid server
+    dailyStats = await getDailyStats({ startDate, endDate })
+    formatStats = await getFormatStats({ startDate, endDate })
+
+    // Fetch per-app stats
+    for (const app of apps) {
+      const appDailyStats = await getDailyStats({
+        appKey: app.appKey,
+        startDate,
+        endDate,
+      })
+      appStats[app.id] = {
+        impressions: appDailyStats.reduce((acc, day) => acc + day.impressions, 0),
+        revenue: appDailyStats.reduce((acc, day) => acc + day.revenue, 0),
+      }
+    }
+
+    // Aggregate totals
+    impressions = dailyStats.reduce((acc, day) => acc + day.impressions, 0)
+    clicks = dailyStats.reduce((acc, day) => acc + day.clicks, 0)
+    revenue = dailyStats.reduce((acc, day) => acc + day.revenue, 0)
   }
 
   return {
@@ -30,7 +66,13 @@ async function getPublisherStats(publisherId: string) {
     totalAdUnits,
     activeApps,
     apps,
-    ...recentStats,
+    impressions,
+    clicks,
+    revenue: revenue.toFixed(2),
+    dailyStats,
+    formatStats,
+    appStats,
+    analyticsConfigured,
   }
 }
 
@@ -135,10 +177,10 @@ export default async function ReportsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        {Math.floor(Math.random() * 50000).toLocaleString()}
+                        {stats.appStats[app.id]?.impressions.toLocaleString() || '-'}
                       </TableCell>
                       <TableCell className="text-right">
-                        ${(Math.random() * 500).toFixed(2)}
+                        ${stats.appStats[app.id]?.revenue.toFixed(2) || '0.00'}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -166,38 +208,32 @@ export default async function ReportsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Format</TableHead>
+                    <TableHead className="text-right">Requests</TableHead>
                     <TableHead className="text-right">Impressions</TableHead>
-                    <TableHead className="text-right">Clicks</TableHead>
-                    <TableHead className="text-right">CTR</TableHead>
                     <TableHead className="text-right">eCPM</TableHead>
                     <TableHead className="text-right">Revenue</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">Banner</TableCell>
-                    <TableCell className="text-right">45,230</TableCell>
-                    <TableCell className="text-right">892</TableCell>
-                    <TableCell className="text-right">1.97%</TableCell>
-                    <TableCell className="text-right">$2.50</TableCell>
-                    <TableCell className="text-right">$113.08</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Interstitial</TableCell>
-                    <TableCell className="text-right">12,450</TableCell>
-                    <TableCell className="text-right">1,245</TableCell>
-                    <TableCell className="text-right">10.00%</TableCell>
-                    <TableCell className="text-right">$8.50</TableCell>
-                    <TableCell className="text-right">$105.83</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Rewarded</TableCell>
-                    <TableCell className="text-right">8,920</TableCell>
-                    <TableCell className="text-right">2,230</TableCell>
-                    <TableCell className="text-right">25.00%</TableCell>
-                    <TableCell className="text-right">$15.00</TableCell>
-                    <TableCell className="text-right">$133.80</TableCell>
-                  </TableRow>
+                  {stats.formatStats.length > 0 ? (
+                    stats.formatStats.map((format) => (
+                      <TableRow key={format.format}>
+                        <TableCell className="font-medium">{format.format}</TableCell>
+                        <TableCell className="text-right">{format.requests.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">{format.impressions.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">${format.avg_cpm.toFixed(2)}</TableCell>
+                        <TableCell className="text-right">${format.revenue.toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                        {stats.analyticsConfigured
+                          ? "No data available for this period"
+                          : "Analytics not configured. Set TINYBIRD_API_KEY on the server."}
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -208,37 +244,41 @@ export default async function ReportsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Daily Performance</CardTitle>
-              <CardDescription>Last 7 days performance overview</CardDescription>
+              <CardDescription>Last 30 days performance overview</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Requests</TableHead>
                     <TableHead className="text-right">Impressions</TableHead>
                     <TableHead className="text-right">Clicks</TableHead>
+                    <TableHead className="text-right">Fill Rate</TableHead>
                     <TableHead className="text-right">Revenue</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {Array.from({ length: 7 }).map((_, i) => {
-                    const date = new Date()
-                    date.setDate(date.getDate() - i)
-                    return (
-                      <TableRow key={i}>
-                        <TableCell>{date.toLocaleDateString()}</TableCell>
-                        <TableCell className="text-right">
-                          {Math.floor(Math.random() * 15000).toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {Math.floor(Math.random() * 750).toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          ${(Math.random() * 150).toFixed(2)}
-                        </TableCell>
+                  {stats.dailyStats.length > 0 ? (
+                    stats.dailyStats.slice(0, 30).map((day) => (
+                      <TableRow key={day.date}>
+                        <TableCell>{new Date(day.date).toLocaleDateString()}</TableCell>
+                        <TableCell className="text-right">{day.requests.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">{day.impressions.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">{day.clicks.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">{day.fill_rate.toFixed(1)}%</TableCell>
+                        <TableCell className="text-right">${day.revenue.toFixed(2)}</TableCell>
                       </TableRow>
-                    )
-                  })}
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        {stats.analyticsConfigured
+                          ? "No data available for this period"
+                          : "Analytics not configured. Set TINYBIRD_API_KEY on the server."}
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

@@ -11,8 +11,16 @@ import { createHmac } from 'crypto'
  */
 
 interface FyberConfig {
+  demandSourceId: string
   appId: string
   securityToken: string // Encrypted
+}
+
+interface FyberAdUnit {
+  externalId: string // Fyber spot ID
+  format: string
+  bidFloor: number
+  isActive: boolean
 }
 
 interface FyberBidRequest {
@@ -53,16 +61,37 @@ class FyberConnector extends BaseConnector {
   name = 'fyber'
 
   private configs: Map<string, FyberConfig> = new Map()
+  private adUnits: Map<string, FyberAdUnit[]> = new Map() // demandSourceId -> adUnits
   private readonly API_BASE = 'https://api.fyber.com/feed/v1/offers'
   private readonly TIMEOUT_MS = 200
 
   /**
    * Load Fyber configurations from database
    */
-  async loadConfigs(configs: FyberConfig[]): Promise<void> {
+  async loadConfigs(
+    configs: FyberConfig[],
+    adUnits?: { demandSourceId: string; units: FyberAdUnit[] }[]
+  ): Promise<void> {
     for (const config of configs) {
-      this.configs.set(config.appId, config)
+      this.configs.set(config.demandSourceId, config)
     }
+
+    // Load ad units
+    if (adUnits) {
+      for (const { demandSourceId, units } of adUnits) {
+        this.adUnits.set(demandSourceId, units.filter(u => u.isActive))
+      }
+    }
+  }
+
+  /**
+   * Find matching ad unit for the request format
+   */
+  private findMatchingAdUnit(demandSourceId: string, format: string): FyberAdUnit | null {
+    const units = this.adUnits.get(demandSourceId)
+    if (!units) return null
+
+    return units.find(u => u.format.toLowerCase() === format.toLowerCase()) || null
   }
 
   /**
@@ -74,20 +103,37 @@ class FyberConnector extends BaseConnector {
       return this.getMockBid(request)
     }
 
-    const config = this.configs.values().next().value as FyberConfig | undefined
-    if (!config) {
-      return null
+    // Find first config that has a matching ad unit
+    let selectedConfig: FyberConfig | null = null
+    let selectedAdUnit: FyberAdUnit | null = null
+
+    for (const [demandSourceId, config] of this.configs) {
+      const adUnit = this.findMatchingAdUnit(demandSourceId, request.format || 'banner')
+      if (adUnit) {
+        selectedConfig = config
+        selectedAdUnit = adUnit
+        break
+      }
+    }
+
+    // Fallback to first config if no ad unit match
+    if (!selectedConfig) {
+      selectedConfig = this.configs.values().next().value as FyberConfig | undefined
+      if (!selectedConfig) {
+        return null
+      }
     }
 
     try {
-      const bidRequest = this.buildBidRequest(request, config)
+      const bidRequest = this.buildBidRequest(request, selectedConfig, selectedAdUnit)
       const response = await this.sendBidRequest(bidRequest)
 
       if (!response || response.code !== 200 || !response.ads?.length) {
         return null
       }
 
-      return this.parseBidResponse(response, request)
+      // Filter ads by floor price and parse
+      return this.parseBidResponse(response, request, selectedAdUnit?.bidFloor || 0)
     } catch (error) {
       console.error('Fyber bid error:', error)
       return null
@@ -97,7 +143,11 @@ class FyberConnector extends BaseConnector {
   /**
    * Build Fyber bid request with signature
    */
-  private buildBidRequest(request: BidRequest, config: FyberConfig): FyberBidRequest {
+  private buildBidRequest(
+    request: BidRequest,
+    config: FyberConfig,
+    adUnit: FyberAdUnit | null
+  ): FyberBidRequest {
     const timestamp = Math.floor(Date.now() / 1000)
 
     // Decrypt security token
@@ -113,6 +163,9 @@ class FyberConnector extends BaseConnector {
 
     const signature = this.generateSignature(signatureParams, securityToken)
 
+    // Use external spot ID from ad unit config, or use placement_id
+    const placementId = adUnit?.externalId || request.placement_id
+
     return {
       appId: config.appId,
       deviceId: request.device?.ifa || '',
@@ -120,7 +173,7 @@ class FyberConnector extends BaseConnector {
       timestamp,
       signature,
       format: this.mapFormat(request.format),
-      placementId: request.placement_id,
+      placementId,
       width: request.width || 320,
       height: request.height || 50,
       os: request.device?.os || 'android',
@@ -206,12 +259,21 @@ class FyberConnector extends BaseConnector {
   /**
    * Parse Fyber bid response
    */
-  private parseBidResponse(response: FyberBidResponse, request: BidRequest): BidResult | null {
+  private parseBidResponse(
+    response: FyberBidResponse,
+    request: BidRequest,
+    bidFloor: number = 0
+  ): BidResult | null {
     if (!response.ads?.length) return null
 
-    // Get highest paying ad
-    const ads = [...response.ads].sort((a, b) => b.payout - a.payout)
-    const bestAd = ads[0]
+    // Filter ads above floor price and sort by payout
+    const eligibleAds = response.ads
+      .filter(ad => ad.payout >= bidFloor)
+      .sort((a, b) => b.payout - a.payout)
+
+    if (!eligibleAds.length) return null
+
+    const bestAd = eligibleAds[0]
 
     let creative: BidResult['creative']
 

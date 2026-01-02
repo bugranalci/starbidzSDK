@@ -10,10 +10,18 @@ import { safeDecrypt } from '../lib/crypto'
  */
 
 interface UnityConfig {
+  demandSourceId: string
   organizationId: string
   gameIdAndroid: string
   gameIdIos: string
   apiKey: string | null // Encrypted
+}
+
+interface UnityAdUnit {
+  externalId: string // Unity placement ID
+  format: string
+  bidFloor: number
+  isActive: boolean
 }
 
 interface UnityBidRequest {
@@ -51,16 +59,37 @@ class UnityConnector extends BaseConnector {
   name = 'unity'
 
   private configs: Map<string, UnityConfig> = new Map()
+  private adUnits: Map<string, UnityAdUnit[]> = new Map() // demandSourceId -> adUnits
   private readonly API_BASE = 'https://auction.unityads.unity3d.com/v6/games'
   private readonly TIMEOUT_MS = 200
 
   /**
    * Load Unity configurations from database
    */
-  async loadConfigs(configs: UnityConfig[]): Promise<void> {
+  async loadConfigs(
+    configs: UnityConfig[],
+    adUnits?: { demandSourceId: string; units: UnityAdUnit[] }[]
+  ): Promise<void> {
     for (const config of configs) {
-      this.configs.set(config.organizationId, config)
+      this.configs.set(config.demandSourceId, config)
     }
+
+    // Load ad units
+    if (adUnits) {
+      for (const { demandSourceId, units } of adUnits) {
+        this.adUnits.set(demandSourceId, units.filter(u => u.isActive))
+      }
+    }
+  }
+
+  /**
+   * Find matching ad unit for the request format
+   */
+  private findMatchingAdUnit(demandSourceId: string, format: string): UnityAdUnit | null {
+    const units = this.adUnits.get(demandSourceId)
+    if (!units) return null
+
+    return units.find(u => u.format.toLowerCase() === format.toLowerCase()) || null
   }
 
   /**
@@ -72,25 +101,46 @@ class UnityConnector extends BaseConnector {
       return this.getMockBid(request)
     }
 
-    const config = this.configs.values().next().value as UnityConfig | undefined
-    if (!config) {
-      return null
+    // Find first config that has a matching ad unit
+    let selectedConfig: UnityConfig | null = null
+    let selectedAdUnit: UnityAdUnit | null = null
+
+    for (const [demandSourceId, config] of this.configs) {
+      const adUnit = this.findMatchingAdUnit(demandSourceId, request.format || 'banner')
+      if (adUnit) {
+        selectedConfig = config
+        selectedAdUnit = adUnit
+        break
+      }
+    }
+
+    // Fallback to first config if no ad unit match
+    if (!selectedConfig) {
+      selectedConfig = this.configs.values().next().value as UnityConfig | undefined
+      if (!selectedConfig) {
+        return null
+      }
     }
 
     // Get game ID based on platform
     const gameId = request.device?.os === 'ios'
-      ? config.gameIdIos
-      : config.gameIdAndroid
+      ? selectedConfig.gameIdIos
+      : selectedConfig.gameIdAndroid
 
     if (!gameId) {
       return null
     }
 
     try {
-      const bidRequest = this.buildBidRequest(request, config, gameId)
-      const response = await this.sendBidRequest(bidRequest, config)
+      const bidRequest = this.buildBidRequest(request, selectedConfig, gameId, selectedAdUnit)
+      const response = await this.sendBidRequest(bidRequest, selectedConfig)
 
       if (!response || !response.success || !response.bid) {
+        return null
+      }
+
+      // Check floor price
+      if (selectedAdUnit && response.bid.price < selectedAdUnit.bidFloor) {
         return null
       }
 
@@ -107,12 +157,16 @@ class UnityConnector extends BaseConnector {
   private buildBidRequest(
     request: BidRequest,
     config: UnityConfig,
-    gameId: string
+    gameId: string,
+    adUnit: UnityAdUnit | null
   ): UnityBidRequest {
+    // Use external placement ID from ad unit config, or generate one
+    const placementId = adUnit?.externalId || `starbidz_${request.placement_id}`
+
     return {
       bundleId: request.app?.bundle || '',
       gameId,
-      placementId: `starbidz_${request.placement_id}`,
+      placementId,
       deviceId: request.device?.ifa || '',
       platform: request.device?.os === 'ios' ? 'ios' : 'android',
       osVersion: request.device?.osv || '',

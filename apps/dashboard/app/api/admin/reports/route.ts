@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/db'
+import {
+  getDailyStats,
+  getDemandSourceStats,
+  getFormatStats,
+  isAnalyticsConfigured,
+} from '@/lib/analytics'
 
 async function requireAdmin() {
   const { userId } = await auth()
@@ -25,7 +31,6 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url)
     const period = searchParams.get('period') || '30d'
-    const groupBy = searchParams.get('groupBy') || 'day'
 
     // Calculate date range
     const now = new Date()
@@ -48,61 +53,95 @@ export async function GET(req: Request) {
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
     }
 
-    // Get platform-wide stats
+    const startDateStr = startDate.toISOString().split('T')[0]
+    const endDateStr = now.toISOString().split('T')[0]
+
+    // Get platform-wide stats from database
     const [
       totalPublishers,
       activePublishers,
       totalApps,
       totalAdUnits,
       demandSources,
-      recentBidRequests,
     ] = await Promise.all([
       prisma.publisher.count(),
-      prisma.publisher.count({ where: { isActive: true } }),
+      prisma.publisher.count({
+        where: {
+          apps: { some: { isActive: true } }
+        }
+      }),
       prisma.app.count(),
       prisma.adUnit.count(),
       prisma.demandSource.findMany({
         where: { isActive: true },
         select: { id: true, name: true, type: true },
       }),
-      // Get recent bid request logs if available
-      prisma.bidRequest.count({
-        where: { createdAt: { gte: startDate } },
-      }).catch(() => 0), // If table doesn't exist, return 0
     ])
 
-    // Get revenue by demand source (mock data for now, would need a revenue tracking table)
-    const demandSourceStats = demandSources.map((source) => ({
-      id: source.id,
-      name: source.name,
-      type: source.type,
-      impressions: Math.floor(Math.random() * 1000000) + 100000,
-      revenue: Math.random() * 50000 + 10000,
-      ecpm: Math.random() * 10 + 3,
-      fillRate: Math.random() * 30 + 70,
-    }))
+    // Check if analytics is configured
+    const analyticsConfigured = await isAnalyticsConfigured()
 
-    // Aggregate totals
-    const totals = demandSourceStats.reduce(
-      (acc, stat) => ({
-        impressions: acc.impressions + stat.impressions,
-        revenue: acc.revenue + stat.revenue,
-      }),
-      { impressions: 0, revenue: 0 }
-    )
+    let dailyStats: Array<{
+      date: string
+      requests: number
+      impressions: number
+      clicks: number
+      revenue: number
+      fill_rate: number
+    }> = []
 
-    // Generate daily breakdown (mock data)
-    const dailyStats = []
-    const days = period === '7d' ? 7 : period === '30d' ? 30 : period === '90d' ? 90 : 365
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
-      dailyStats.push({
-        date: date.toISOString().split('T')[0],
-        impressions: Math.floor(Math.random() * 50000) + 10000,
-        revenue: Math.random() * 2000 + 500,
-        requests: Math.floor(Math.random() * 60000) + 15000,
-      })
+    let demandSourceStats: Array<{
+      demand_source: string
+      requests: number
+      wins: number
+      impressions: number
+      revenue: number
+      avg_bid: number
+      win_rate: number
+    }> = []
+
+    let formatStats: Array<{
+      format: string
+      requests: number
+      impressions: number
+      revenue: number
+      avg_cpm: number
+    }> = []
+
+    if (analyticsConfigured) {
+      // Fetch real analytics data from Tinybird
+      const [daily, demand, formats] = await Promise.all([
+        getDailyStats({ startDate: startDateStr, endDate: endDateStr }),
+        getDemandSourceStats({ startDate: startDateStr, endDate: endDateStr }),
+        getFormatStats({ startDate: startDateStr, endDate: endDateStr }),
+      ])
+
+      dailyStats = daily
+      demandSourceStats = demand
+      formatStats = formats
     }
+
+    // Calculate totals from real data
+    const totalImpressions = dailyStats.reduce((acc, d) => acc + d.impressions, 0)
+    const totalRevenue = dailyStats.reduce((acc, d) => acc + d.revenue, 0)
+    const totalRequests = dailyStats.reduce((acc, d) => acc + d.requests, 0)
+    const avgFillRate = totalRequests > 0 ? (totalImpressions / totalRequests) * 100 : 0
+
+    // Map demand source stats to include database info
+    const enrichedDemandSourceStats = demandSources.map((source) => {
+      const stats = demandSourceStats.find(
+        (s) => s.demand_source.toLowerCase() === source.type.toLowerCase()
+      )
+      return {
+        id: source.id,
+        name: source.name,
+        type: source.type,
+        impressions: stats?.impressions || 0,
+        revenue: stats?.revenue || 0,
+        ecpm: stats?.impressions ? (stats.revenue / stats.impressions) * 1000 : 0,
+        winRate: stats?.win_rate || 0,
+      }
+    })
 
     return NextResponse.json({
       overview: {
@@ -110,16 +149,19 @@ export async function GET(req: Request) {
         activePublishers,
         totalApps,
         totalAdUnits,
-        totalImpressions: totals.impressions,
-        totalRevenue: totals.revenue,
-        avgEcpm: totals.impressions > 0 ? (totals.revenue / totals.impressions) * 1000 : 0,
-        avgFillRate: demandSourceStats.reduce((acc, s) => acc + s.fillRate, 0) / demandSourceStats.length,
+        totalImpressions,
+        totalRevenue,
+        totalRequests,
+        avgEcpm: totalImpressions > 0 ? (totalRevenue / totalImpressions) * 1000 : 0,
+        avgFillRate,
       },
-      demandSources: demandSourceStats,
+      demandSources: enrichedDemandSourceStats,
+      formats: formatStats,
       daily: dailyStats,
       period,
       startDate: startDate.toISOString(),
       endDate: now.toISOString(),
+      analyticsConfigured,
     })
   } catch (error) {
     if (error instanceof Error && error.message === 'Admin access required') {

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    `maven-publish`
 }
 
 android {
@@ -40,4 +41,39 @@ dependencies {
     implementation(libs.moshi.kotlin)
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components["release"])
+
+                groupId = project.property("STARBIDZ_GROUP").toString()
+                artifactId = "starbidz-core"
+                version = project.property("STARBIDZ_VERSION").toString()
+
+                pom {
+                    name.set("Starbidz Core SDK")
+                    description.set("Core SDK for Starbidz ad mediation platform")
+                    url.set("https://github.com/AjoPay/Starbidz-SDK-Android")
+
+                    licenses {
+                        license {
+                            name.set("MIT License")
+                            url.set("https://opensource.org/licenses/MIT")
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id.set("starbidz")
+                            name.set("Starbidz Team")
+                            email.set("dev@starbidz.io")
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
