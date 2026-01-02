@@ -23,7 +23,7 @@ COPY apps/server ./apps/server
 
 # Generate Prisma client
 WORKDIR /app/apps/server
-RUN bunx prisma@6.1.0 generate
+RUN npx prisma@6.1.0 generate
 
 # Expose port
 EXPOSE 8080
