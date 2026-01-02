@@ -121,7 +121,7 @@ export default async function FyberDetailPage({
               <TableRow>
                 <TableHead>Spot ID</TableHead>
                 <TableHead>Format</TableHead>
-                <TableHead>Platform</TableHead>
+                <TableHead>Bid Floor</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -133,7 +133,7 @@ export default async function FyberDetailPage({
                   <TableCell>
                     <Badge variant="outline">{unit.format}</Badge>
                   </TableCell>
-                  <TableCell>{unit.platform || "All"}</TableCell>
+                  <TableCell>${unit.bidFloor.toFixed(2)}</TableCell>
                   <TableCell>
                     <Badge variant={unit.isActive ? "success" : "secondary"}>
                       {unit.isActive ? "Active" : "Inactive"}
