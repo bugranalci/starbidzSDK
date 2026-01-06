@@ -1,5 +1,6 @@
 name: Dashboard CI/CD
 
+# CI/CD for Next.js Dashboard Application
 on:
   push:
     branches: [main]
