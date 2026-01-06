@@ -1,6 +1,9 @@
 import { getOrCreateUser } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import Link from 'next/link'
+import type { App } from '@prisma/client'
+
+type AppWithCount = App & { _count: { adUnits: number } }
 
 export default async function AppsPage() {
   const user = await getOrCreateUser()
@@ -63,7 +66,7 @@ export default async function AppsPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {apps.map((app) => (
+              {apps.map((app: AppWithCount) => (
                 <tr key={app.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <Link href={`/apps/${app.id}`} className="hover:underline">

@@ -7,6 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CodeBlock } from '@/components/code-block'
 import { CopyableCode } from '@/components/copy-button'
+import type { App, AdUnit } from '@prisma/client'
+
+type AppWithUnits = App & { adUnits: AdUnit[] }
 
 export default async function IntegrationGuidePage({
   params,
@@ -78,7 +81,7 @@ export default async function IntegrationGuidePage({
             <div>
               <label className="text-sm font-medium text-gray-500">Placement IDs</label>
               <div className="mt-1 space-y-2">
-                {app.adUnits.map((unit) => (
+                {app.adUnits.map((unit: AdUnit) => (
                   <div key={unit.id} className="flex items-center justify-between bg-gray-100 px-3 py-2 rounded">
                     <span className="text-sm">{unit.name} ({unit.format})</span>
                     <code className="text-sm font-mono">{unit.placementId}</code>
@@ -111,7 +114,7 @@ export default async function IntegrationGuidePage({
   )
 }
 
-function AndroidIntegrationGuide({ app, serverUrl }: { app: any; serverUrl: string }) {
+function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; serverUrl: string }) {
   return (
     <Tabs defaultValue="max" className="space-y-6">
       <TabsList>
@@ -717,7 +720,7 @@ IronSource.loadBanner(bannerLayout, ISBannerSize.BANNER)`}</CodeBlock>
   )
 }
 
-function IOSIntegrationGuide({ app, serverUrl }: { app: any; serverUrl: string }) {
+function IOSIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; serverUrl: string }) {
   return (
     <Tabs defaultValue="max" className="space-y-6">
       <TabsList>

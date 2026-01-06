@@ -1,5 +1,14 @@
 import { prisma } from '@/lib/db'
 import Link from 'next/link'
+import type { DemandSource, GamConfig, UnityConfig, FyberConfig, OrtbConfig } from '@prisma/client'
+
+type DemandSourceFull = DemandSource & {
+  gamConfig: GamConfig | null
+  unityConfig: UnityConfig | null
+  fyberConfig: FyberConfig | null
+  ortbConfig: OrtbConfig | null
+  _count: { adUnits: number }
+}
 
 export default async function DemandSourcesPage() {
   const demandSources = await prisma.demandSource.findMany({
@@ -85,7 +94,7 @@ export default async function DemandSourcesPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {demandSources.map((source) => (
+              {demandSources.map((source: DemandSourceFull) => (
                 <tr key={source.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <span className="font-mono text-sm">{source.priority}</span>

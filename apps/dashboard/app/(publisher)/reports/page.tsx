@@ -13,6 +13,9 @@ import {
   type DailyStats,
   type FormatStats,
 } from "@/lib/analytics"
+import type { App, AdUnit } from '@prisma/client'
+
+type AppWithUnits = App & { adUnits: AdUnit[] }
 
 async function getPublisherStats(publisherId: string) {
   const apps = await prisma.app.findMany({
@@ -23,8 +26,8 @@ async function getPublisherStats(publisherId: string) {
   })
 
   const totalApps = apps.length
-  const totalAdUnits = apps.reduce((acc, app) => acc + app.adUnits.length, 0)
-  const activeApps = apps.filter(app => app.isActive).length
+  const totalAdUnits = apps.reduce((acc: number, app: AppWithUnits) => acc + app.adUnits.length, 0)
+  const activeApps = apps.filter((app: AppWithUnits) => app.isActive).length
 
   // Get real analytics data
   const { startDate, endDate } = getDateRange('30d')
@@ -164,7 +167,7 @@ export default async function ReportsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {stats.apps.map((app) => (
+                  {stats.apps.map((app: AppWithUnits) => (
                     <TableRow key={app.id}>
                       <TableCell className="font-medium">{app.name}</TableCell>
                       <TableCell>

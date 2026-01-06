@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DemandActions, AddAdUnitButton } from "@/components/admin/demand-actions"
+import type { DemandAdUnit } from '@prisma/client'
 
 async function getGamSource(id: string) {
   const source = await prisma.demandSource.findUnique({
@@ -128,7 +129,7 @@ export default async function GamDetailPage({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {source.adUnits.map((unit) => (
+              {source.adUnits.map((unit: DemandAdUnit) => (
                 <TableRow key={unit.id}>
                   <TableCell className="font-mono text-sm">{unit.externalId}</TableCell>
                   <TableCell>

@@ -1,5 +1,13 @@
 import { prisma } from '@/lib/db'
 import Link from 'next/link'
+import type { DemandSource, GamConfig, UnityConfig, FyberConfig, OrtbConfig } from '@prisma/client'
+
+type DemandSourceWithConfigs = DemandSource & {
+  gamConfig: GamConfig | null
+  unityConfig: UnityConfig | null
+  fyberConfig: FyberConfig | null
+  ortbConfig: OrtbConfig | null
+}
 
 export default async function AdminDashboardPage() {
   const [
@@ -65,7 +73,7 @@ export default async function AdminDashboardPage() {
             </div>
           ) : (
             <div className="divide-y">
-              {activeDemandSources.map((source) => (
+              {activeDemandSources.map((source: DemandSourceWithConfigs) => (
                 <div key={source.id} className="px-6 py-4 flex justify-between items-center">
                   <div>
                     <h3 className="font-medium">{source.name}</h3>

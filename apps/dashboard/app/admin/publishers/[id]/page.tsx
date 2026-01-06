@@ -5,6 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import type { App, AdUnit } from '@prisma/client'
+
+type AppWithUnits = App & { adUnits: AdUnit[] }
 
 async function getPublisher(id: string) {
   const publisher = await prisma.publisher.findUnique({
@@ -113,13 +116,13 @@ export default async function PublisherDetailPage({
             <div className="flex justify-between">
               <span className="text-muted-foreground">Total Ad Units</span>
               <span className="font-bold">
-                {publisher.apps.reduce((acc, app) => acc + app.adUnits.length, 0)}
+                {publisher.apps.reduce((acc: number, app: AppWithUnits) => acc + app.adUnits.length, 0)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Active Apps</span>
               <span className="font-bold">
-                {publisher.apps.filter((app) => app.isActive).length}
+                {publisher.apps.filter((app: AppWithUnits) => app.isActive).length}
               </span>
             </div>
           </CardContent>
@@ -144,7 +147,7 @@ export default async function PublisherDetailPage({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {publisher.apps.map((app) => (
+              {publisher.apps.map((app: AppWithUnits) => (
                 <TableRow key={app.id}>
                   <TableCell className="font-medium">{app.name}</TableCell>
                   <TableCell>

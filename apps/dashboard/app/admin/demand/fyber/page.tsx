@@ -4,6 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import type { DemandSource, FyberConfig, DemandAdUnit } from '@prisma/client'
+
+type FyberSource = DemandSource & { fyberConfig: FyberConfig | null; adUnits: DemandAdUnit[] }
 
 async function getFyberSources() {
   const sources = await prisma.demandSource.findMany({
@@ -50,7 +53,7 @@ export default async function FyberPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sources.map((source) => (
+              {sources.map((source: FyberSource) => (
                 <TableRow key={source.id}>
                   <TableCell className="font-medium">{source.name}</TableCell>
                   <TableCell>

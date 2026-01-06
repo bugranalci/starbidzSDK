@@ -4,6 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import type { DemandSource, OrtbConfig } from '@prisma/client'
+
+type OrtbSource = DemandSource & { ortbConfig: OrtbConfig | null }
 
 async function getOrtbSources() {
   const sources = await prisma.demandSource.findMany({
@@ -49,7 +52,7 @@ export default async function OrtbPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sources.map((source) => (
+              {sources.map((source: OrtbSource) => (
                 <TableRow key={source.id}>
                   <TableCell className="font-medium">{source.name}</TableCell>
                   <TableCell>

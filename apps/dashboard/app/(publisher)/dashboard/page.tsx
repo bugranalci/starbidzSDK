@@ -1,6 +1,9 @@
 import { getOrCreateUser } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import Link from 'next/link'
+import type { App } from '@prisma/client'
+
+type AppWithCount = App & { _count: { adUnits: number } }
 
 export default async function DashboardPage() {
   const user = await getOrCreateUser()
@@ -14,7 +17,7 @@ export default async function DashboardPage() {
     include: { _count: { select: { adUnits: true } } },
   })
 
-  const totalAdUnits = apps.reduce((sum, app) => sum + app._count.adUnits, 0)
+  const totalAdUnits = apps.reduce((sum: number, app: AppWithCount) => sum + app._count.adUnits, 0)
 
   return (
     <div>
@@ -51,7 +54,7 @@ export default async function DashboardPage() {
           </div>
         ) : (
           <div className="divide-y">
-            {apps.map((app) => (
+            {apps.map((app: AppWithCount) => (
               <Link
                 key={app.id}
                 href={`/apps/${app.id}`}

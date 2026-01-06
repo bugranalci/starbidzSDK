@@ -4,6 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import type { Publisher, User, App } from '@prisma/client'
+
+type PublisherWithUser = Publisher & {
+  user: User
+  apps: Pick<App, 'id' | 'isActive'>[]
+  _count: { apps: number }
+}
 
 async function getPublishers() {
   const publishers = await prisma.publisher.findMany({
@@ -93,7 +100,7 @@ export default async function PublishersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {publishers.map((publisher) => {
+              {publishers.map((publisher: PublisherWithUser) => {
                 const activeAppsCount = publisher.apps.filter(app => app.isActive).length
                 return (
                   <TableRow key={publisher.id}>
