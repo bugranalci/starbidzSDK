@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "io.starbidz.core"
+    namespace = "com.starbidz.sdk"
     compileSdk = project.property("ANDROID_COMPILE_SDK").toString().toInt()
 
     defaultConfig {
@@ -25,12 +25,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "11"
     }
 }
 
@@ -49,14 +49,14 @@ afterEvaluate {
             create<MavenPublication>("release") {
                 from(components["release"])
 
-                groupId = project.property("STARBIDZ_GROUP").toString()
-                artifactId = "starbidz-core"
+                groupId = "com.github.bugranalci"
+                artifactId = "starbidzSDK"
                 version = project.property("STARBIDZ_VERSION").toString()
 
                 pom {
-                    name.set("Starbidz Core SDK")
-                    description.set("Core SDK for Starbidz ad mediation platform")
-                    url.set("https://github.com/AjoPay/Starbidz-SDK-Android")
+                    name.set("Starbidz SDK")
+                    description.set("Client-side ad mediation SDK for mobile apps")
+                    url.set("https://github.com/bugranalci/starbidzSDK")
 
                     licenses {
                         license {
@@ -71,6 +71,12 @@ afterEvaluate {
                             name.set("Starbidz Team")
                             email.set("dev@starbidz.io")
                         }
+                    }
+
+                    scm {
+                        connection.set("scm:git:github.com/bugranalci/starbidzSDK.git")
+                        developerConnection.set("scm:git:ssh://github.com/bugranalci/starbidzSDK.git")
+                        url.set("https://github.com/bugranalci/starbidzSDK/tree/main")
                     }
                 }
             }

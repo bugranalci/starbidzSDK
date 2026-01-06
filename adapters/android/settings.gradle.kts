@@ -15,9 +15,13 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "starbidz-android"
+rootProject.name = "starbidzSDK"
 
-include(":starbidz-core")
-include(":starbidz-max")
-include(":starbidz-admob")
-include(":starbidz-levelplay")
+// Main SDK module
+include(":starbidz")
+
+// Optional adapter modules (for integrating Starbidz into other mediation platforms)
+// Uncomment if needed:
+// include(":starbidz-admob")
+// include(":starbidz-max")
+// include(":starbidz-levelplay")

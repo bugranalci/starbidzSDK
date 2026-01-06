@@ -1,308 +1,57 @@
 import { BaseConnector } from './base'
 import type { BidRequest, BidResult } from '@starbidz/shared'
-import { safeDecrypt } from '../lib/crypto'
-import { createHmac } from 'crypto'
 
 /**
  * Fyber (DT Exchange) Connector
  *
- * Integrates with Fyber/Digital Turbine Exchange for programmatic demand.
- * Documentation: https://developer.digitalturbine.com/
+ * Client-side mediation - server only provides config.
+ * Actual ad loading happens in the SDK using Fyber App ID + Spot ID.
  */
 
 interface FyberConfig {
   demandSourceId: string
-  appId: string
-  securityToken: string // Encrypted
-}
-
-interface FyberAdUnit {
-  externalId: string // Fyber spot ID
-  format: string
-  bidFloor: number
-  isActive: boolean
-}
-
-interface FyberBidRequest {
-  appId: string
-  deviceId: string
-  ip: string
-  timestamp: number
-  signature: string
-  // Ad request params
-  format: string
-  placementId: string
-  width: number
-  height: number
-  os: string
-  osVersion: string
-  deviceModel: string
-  connectionType: string
-  country?: string
-}
-
-interface FyberBidResponse {
-  code: number
-  message: string
-  ads?: Array<{
-    ad_id: string
-    ad_format: string
-    payout: number
-    currency: string
-    creative_type: string
-    creative_url?: string
-    click_url?: string
-    impression_url?: string
-    vast_xml?: string
-  }>
+  appIdAndroid: string
+  appIdIos: string
 }
 
 class FyberConnector extends BaseConnector {
   name = 'fyber'
 
   private configs: Map<string, FyberConfig> = new Map()
-  private adUnits: Map<string, FyberAdUnit[]> = new Map() // demandSourceId -> adUnits
-  private readonly API_BASE = 'https://api.fyber.com/feed/v1/offers'
-  private readonly TIMEOUT_MS = 200
 
   /**
    * Load Fyber configurations from database
    */
-  async loadConfigs(
-    configs: FyberConfig[],
-    adUnits?: { demandSourceId: string; units: FyberAdUnit[] }[]
-  ): Promise<void> {
+  async loadConfigs(configs: FyberConfig[]): Promise<void> {
     for (const config of configs) {
       this.configs.set(config.demandSourceId, config)
     }
-
-    // Load ad units
-    if (adUnits) {
-      for (const { demandSourceId, units } of adUnits) {
-        this.adUnits.set(demandSourceId, units.filter(u => u.isActive))
-      }
-    }
-  }
-
-  /**
-   * Find matching ad unit for the request format
-   */
-  private findMatchingAdUnit(demandSourceId: string, format: string): FyberAdUnit | null {
-    const units = this.adUnits.get(demandSourceId)
-    if (!units) return null
-
-    return units.find(u => u.format.toLowerCase() === format.toLowerCase()) || null
   }
 
   /**
    * Get bid from Fyber
+   * In client-side mode, we return config info for SDK to use
    */
   async getBid(request: BidRequest): Promise<BidResult | null> {
-    // Test mode - return mock bid
-    if (request.test) {
-      return this.getMockBid(request)
-    }
-
-    // Find first config that has a matching ad unit
-    let selectedConfig: FyberConfig | null = null
-    let selectedAdUnit: FyberAdUnit | null = null
-
-    for (const [demandSourceId, config] of this.configs) {
-      const adUnit = this.findMatchingAdUnit(demandSourceId, request.format || 'banner')
-      if (adUnit) {
-        selectedConfig = config
-        selectedAdUnit = adUnit
-        break
-      }
-    }
-
-    // Fallback to first config if no ad unit match
-    if (!selectedConfig) {
-      selectedConfig = this.configs.values().next().value as FyberConfig | undefined
-      if (!selectedConfig) {
-        return null
-      }
-    }
-
-    try {
-      const bidRequest = this.buildBidRequest(request, selectedConfig, selectedAdUnit)
-      const response = await this.sendBidRequest(bidRequest)
-
-      if (!response || response.code !== 200 || !response.ads?.length) {
-        return null
-      }
-
-      // Filter ads by floor price and parse
-      return this.parseBidResponse(response, request, selectedAdUnit?.bidFloor || 0)
-    } catch (error) {
-      console.error('Fyber bid error:', error)
-      return null
-    }
+    // For client-side mediation, return mock bid
+    // Real bidding happens in SDK using DemandAdUnit's externalId (Spot ID)
+    return this.getMockBid(request)
   }
 
   /**
-   * Build Fyber bid request with signature
+   * Get config for SDK
    */
-  private buildBidRequest(
-    request: BidRequest,
-    config: FyberConfig,
-    adUnit: FyberAdUnit | null
-  ): FyberBidRequest {
-    const timestamp = Math.floor(Date.now() / 1000)
-
-    // Decrypt security token
-    const securityToken = safeDecrypt(config.securityToken) || ''
-
-    // Build signature
-    const signatureParams = [
-      `appid=${config.appId}`,
-      `device_id=${request.device?.ifa || ''}`,
-      `format=${this.mapFormat(request.format)}`,
-      `timestamp=${timestamp}`,
-    ].sort().join('&')
-
-    const signature = this.generateSignature(signatureParams, securityToken)
-
-    // Use external spot ID from ad unit config, or use placement_id
-    const placementId = adUnit?.externalId || request.placement_id
-
-    return {
-      appId: config.appId,
-      deviceId: request.device?.ifa || '',
-      ip: '', // Would be filled from request headers
-      timestamp,
-      signature,
-      format: this.mapFormat(request.format),
-      placementId,
-      width: request.width || 320,
-      height: request.height || 50,
-      os: request.device?.os || 'android',
-      osVersion: request.device?.osv || '',
-      deviceModel: request.device?.model || '',
-      connectionType: request.device?.connectionType || 'wifi',
-      country: request.geo?.country,
-    }
+  getConfig(demandSourceId: string): FyberConfig | undefined {
+    return this.configs.get(demandSourceId)
   }
 
   /**
-   * Generate HMAC-SHA1 signature
+   * Get App ID based on platform
    */
-  private generateSignature(params: string, securityToken: string): string {
-    const hmac = createHmac('sha1', securityToken)
-    hmac.update(params)
-    return hmac.digest('hex')
-  }
-
-  /**
-   * Map ad format to Fyber format
-   */
-  private mapFormat(format?: string): string {
-    switch (format) {
-      case 'rewarded':
-        return 'video'
-      case 'interstitial':
-        return 'interstitial'
-      default:
-        return 'banner'
-    }
-  }
-
-  /**
-   * Send bid request to Fyber
-   */
-  private async sendBidRequest(bidRequest: FyberBidRequest): Promise<FyberBidResponse | null> {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), this.TIMEOUT_MS)
-
-    try {
-      const params = new URLSearchParams({
-        appid: bidRequest.appId,
-        device_id: bidRequest.deviceId,
-        format: bidRequest.format,
-        timestamp: bidRequest.timestamp.toString(),
-        hashkey: bidRequest.signature,
-        os: bidRequest.os,
-        os_version: bidRequest.osVersion,
-        device: bidRequest.deviceModel,
-        connection_type: bidRequest.connectionType,
-        ad_width: bidRequest.width.toString(),
-        ad_height: bidRequest.height.toString(),
-      })
-
-      if (bidRequest.country) {
-        params.set('country', bidRequest.country)
-      }
-
-      const response = await fetch(`${this.API_BASE}?${params}`, {
-        headers: {
-          'Accept': 'application/json',
-        },
-        signal: controller.signal,
-      })
-
-      clearTimeout(timeoutId)
-
-      if (!response.ok) {
-        return null
-      }
-
-      return await response.json()
-    } catch (error) {
-      clearTimeout(timeoutId)
-      if ((error as Error).name === 'AbortError') {
-        console.warn('Fyber bid request timed out')
-      }
-      return null
-    }
-  }
-
-  /**
-   * Parse Fyber bid response
-   */
-  private parseBidResponse(
-    response: FyberBidResponse,
-    request: BidRequest,
-    bidFloor: number = 0
-  ): BidResult | null {
-    if (!response.ads?.length) return null
-
-    // Filter ads above floor price and sort by payout
-    const eligibleAds = response.ads
-      .filter(ad => ad.payout >= bidFloor)
-      .sort((a, b) => b.payout - a.payout)
-
-    if (!eligibleAds.length) return null
-
-    const bestAd = eligibleAds[0]
-
-    let creative: BidResult['creative']
-
-    if (bestAd.vast_xml) {
-      creative = {
-        type: 'vast',
-        content: bestAd.vast_xml,
-        width: request.width,
-        height: request.height,
-      }
-    } else if (bestAd.creative_url) {
-      // Image or HTML creative
-      creative = {
-        type: bestAd.creative_type === 'image' ? 'image' : 'html',
-        content: bestAd.creative_url,
-        width: request.width,
-        height: request.height,
-      }
-    } else {
-      return null
-    }
-
-    return {
-      bidId: bestAd.ad_id,
-      price: bestAd.payout,
-      source: this.name,
-      creative,
-      nurl: bestAd.impression_url,
-    }
+  getAppId(demandSourceId: string, platform: 'android' | 'ios'): string | null {
+    const config = this.configs.get(demandSourceId)
+    if (!config) return null
+    return platform === 'ios' ? config.appIdIos : config.appIdAndroid
   }
 
   /**

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { DemandActions, AddAdUnitButton } from "@/components/admin/demand-actions"
 
 async function getGamSource(id: string) {
@@ -65,12 +66,6 @@ export default async function GamDetailPage({
               <span className="text-muted-foreground">Status</span>
               <Badge variant={source.isActive ? "success" : "secondary"}>
                 {source.isActive ? "Active" : "Inactive"}
-              </Badge>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Credentials</span>
-              <Badge variant={source.gamConfig?.credentials ? "success" : "outline"}>
-                {source.gamConfig?.credentials ? "Configured" : "Not Set"}
               </Badge>
             </div>
             <div className="flex justify-between">

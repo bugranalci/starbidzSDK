@@ -56,18 +56,12 @@ export default async function FyberDetailPage({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">App ID</span>
-              <code>{config?.appId || "-"}</code>
+              <span className="text-muted-foreground">App ID (Android)</span>
+              <code>{config?.appIdAndroid || "-"}</code>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Security Token</span>
-              <Badge variant={config?.securityToken ? "success" : "outline"}>
-                {config?.securityToken ? "Configured" : "Not Set"}
-              </Badge>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">App ID</span>
-              <code>{config?.appId || "-"}</code>
+              <span className="text-muted-foreground">App ID (iOS)</span>
+              <code>{config?.appIdIos || "-"}</code>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Priority</span>

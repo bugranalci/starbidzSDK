@@ -48,6 +48,7 @@ export async function POST(
     const adUnit = await prisma.demandAdUnit.create({
       data: {
         demandSourceId: id,
+        name: data.externalId, // Use externalId as name for now
         externalId: data.externalId,
         format: data.format,
         bidFloor: data.bidFloor,

@@ -26,7 +26,7 @@ class ConnectorManager {
   private initialized = false
 
   // All available connectors
-  private connectors: Map<string, Connector> = new Map([
+  private connectors: Map<string, Connector> = new Map<string, Connector>([
     ['gam', gamConnector],
     ['unity', unityConnector],
     ['fyber', fyberConnector],
@@ -92,15 +92,14 @@ class ConnectorManager {
       // Reset active connectors
       this.activeConnectors.clear()
 
-      // Group configs by type
-      const gamConfigs: Array<{ networkCode: string; credentials: string | null }> = []
+      // Group configs by type (simplified for client-side mediation)
+      const gamConfigs: Array<{ demandSourceId: string; networkCode: string | null }> = []
       const unityConfigs: Array<{
-        organizationId: string
+        demandSourceId: string
         gameIdAndroid: string
         gameIdIos: string
-        apiKey: string | null
       }> = []
-      const fyberConfigs: Array<{ appId: string; securityToken: string }> = []
+      const fyberConfigs: Array<{ demandSourceId: string; appIdAndroid: string; appIdIos: string }> = []
       const ortbConfigs: Array<{
         id: string
         name: string
@@ -122,8 +121,8 @@ class ConnectorManager {
           case 'GAM':
             if (source.gamConfig) {
               gamConfigs.push({
+                demandSourceId: source.id,
                 networkCode: source.gamConfig.networkCode,
-                credentials: source.gamConfig.credentials,
               })
               this.activeConnectors.add('gam')
             }
@@ -132,10 +131,9 @@ class ConnectorManager {
           case 'UNITY':
             if (source.unityConfig) {
               unityConfigs.push({
-                organizationId: source.unityConfig.organizationId,
+                demandSourceId: source.id,
                 gameIdAndroid: source.unityConfig.gameIdAndroid,
                 gameIdIos: source.unityConfig.gameIdIos,
-                apiKey: source.unityConfig.apiKey,
               })
               this.activeConnectors.add('unity')
             }
@@ -144,8 +142,9 @@ class ConnectorManager {
           case 'FYBER':
             if (source.fyberConfig) {
               fyberConfigs.push({
-                appId: source.fyberConfig.appId,
-                securityToken: source.fyberConfig.securityToken,
+                demandSourceId: source.id,
+                appIdAndroid: source.fyberConfig.appIdAndroid,
+                appIdIos: source.fyberConfig.appIdIos,
               })
               this.activeConnectors.add('fyber')
             }

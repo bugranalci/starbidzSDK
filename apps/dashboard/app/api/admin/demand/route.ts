@@ -4,23 +4,22 @@ import { prisma } from '@/lib/db'
 import { z } from 'zod'
 import { encrypt, isEncryptionConfigured } from '@/lib/crypto'
 
+// Simplified schemas for client-side mediation (TopOn style)
 const gamConfigSchema = z.object({
-  networkCode: z.string().min(1),
-  credentials: z.string().nullable().optional(),
+  networkCode: z.string().nullable().optional(), // Optional - just for reference
 })
 
 const unityConfigSchema = z.object({
-  organizationId: z.string().min(1),
   gameIdAndroid: z.string().min(1),
   gameIdIos: z.string().min(1),
-  apiKey: z.string().nullable().optional(),
 })
 
 const fyberConfigSchema = z.object({
-  appId: z.string().min(1),
-  securityToken: z.string().min(1),
+  appIdAndroid: z.string().min(1),
+  appIdIos: z.string().min(1),
 })
 
+// ORTB still needs server-side config for programmatic bidding
 const ortbConfigSchema = z.object({
   endpoint: z.string().url(),
   seatId: z.string().nullable().optional(),
@@ -74,7 +73,7 @@ export async function GET() {
       orderBy: { priority: 'asc' },
     })
 
-    // Mask all sensitive credentials before returning
+    // Mask sensitive credentials (only ORTB has sensitive data now)
     const maskedSources = demandSources.map((source) =>
       maskCredentials(source as unknown as Record<string, unknown>)
     )
@@ -89,38 +88,16 @@ export async function GET() {
 }
 
 /**
- * Encrypt sensitive credential fields before storing
+ * Encrypt sensitive credential fields before storing (only for ORTB now)
  */
 function encryptCredentials(type: string, config: Record<string, unknown>): Record<string, unknown> {
   const encrypted = { ...config }
 
-  // Only encrypt if encryption is configured
-  if (!isEncryptionConfigured()) {
-    console.warn('ENCRYPTION_KEY not configured - storing credentials in plain text')
-    return encrypted
-  }
-
-  switch (type) {
-    case 'GAM':
-      if (encrypted.credentials && typeof encrypted.credentials === 'string') {
-        encrypted.credentials = encrypt(encrypted.credentials)
-      }
-      break
-    case 'UNITY':
-      if (encrypted.apiKey && typeof encrypted.apiKey === 'string') {
-        encrypted.apiKey = encrypt(encrypted.apiKey)
-      }
-      break
-    case 'FYBER':
-      if (encrypted.securityToken && typeof encrypted.securityToken === 'string') {
-        encrypted.securityToken = encrypt(encrypted.securityToken)
-      }
-      break
-    case 'ORTB':
-      if (encrypted.authValue && typeof encrypted.authValue === 'string') {
-        encrypted.authValue = encrypt(encrypted.authValue)
-      }
-      break
+  // Only ORTB has sensitive credentials now
+  if (type === 'ORTB' && isEncryptionConfigured()) {
+    if (encrypted.authValue && typeof encrypted.authValue === 'string') {
+      encrypted.authValue = encrypt(encrypted.authValue)
+    }
   }
 
   return encrypted
@@ -132,27 +109,7 @@ function encryptCredentials(type: string, config: Record<string, unknown>): Reco
 function maskCredentials(demandSource: Record<string, unknown>): Record<string, unknown> {
   const masked = { ...demandSource }
 
-  if (masked.gamConfig && typeof masked.gamConfig === 'object') {
-    const gamConfig = masked.gamConfig as Record<string, unknown>
-    if (gamConfig.credentials) {
-      masked.gamConfig = { ...gamConfig, credentials: '***ENCRYPTED***' }
-    }
-  }
-
-  if (masked.unityConfig && typeof masked.unityConfig === 'object') {
-    const unityConfig = masked.unityConfig as Record<string, unknown>
-    if (unityConfig.apiKey) {
-      masked.unityConfig = { ...unityConfig, apiKey: '***ENCRYPTED***' }
-    }
-  }
-
-  if (masked.fyberConfig && typeof masked.fyberConfig === 'object') {
-    const fyberConfig = masked.fyberConfig as Record<string, unknown>
-    if (fyberConfig.securityToken) {
-      masked.fyberConfig = { ...fyberConfig, securityToken: '***ENCRYPTED***' }
-    }
-  }
-
+  // Only ORTB has sensitive data to mask
   if (masked.ortbConfig && typeof masked.ortbConfig === 'object') {
     const ortbConfig = masked.ortbConfig as Record<string, unknown>
     if (ortbConfig.authValue) {
@@ -170,7 +127,7 @@ export async function POST(req: Request) {
     const body = await req.json()
     const data = createDemandSourceSchema.parse(body)
 
-    // Encrypt sensitive credentials before storing
+    // Encrypt sensitive credentials before storing (only ORTB)
     const encryptedConfig = encryptCredentials(data.type, data.config as Record<string, unknown>)
 
     const demandSource = await prisma.demandSource.create({

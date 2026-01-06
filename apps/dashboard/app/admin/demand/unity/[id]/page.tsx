@@ -56,22 +56,12 @@ export default async function UnityDetailPage({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Organization ID</span>
-              <code>{config?.organizationId || "-"}</code>
-            </div>
-            <div className="flex justify-between">
               <span className="text-muted-foreground">Game ID (Android)</span>
               <code>{config?.gameIdAndroid || "-"}</code>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Game ID (iOS)</span>
               <code>{config?.gameIdIos || "-"}</code>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">API Key</span>
-              <Badge variant={config?.apiKey ? "success" : "outline"}>
-                {config?.apiKey ? "Configured" : "Not Set"}
-              </Badge>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Priority</span>
@@ -137,7 +127,7 @@ export default async function UnityDetailPage({
                   <TableCell>
                     <Badge variant="outline">{unit.format}</Badge>
                   </TableCell>
-                  <TableCell>{unit.platform || "All"}</TableCell>
+                  <TableCell>${unit.bidFloor.toFixed(2)}</TableCell>
                   <TableCell>
                     <Badge variant={unit.isActive ? "success" : "secondary"}>
                       {unit.isActive ? "Active" : "Inactive"}

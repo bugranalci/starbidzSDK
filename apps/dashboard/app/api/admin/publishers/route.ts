@@ -86,7 +86,7 @@ export async function POST(req: Request) {
     const data = createPublisherSchema.parse(body)
 
     // Check if publisher with email already exists
-    const existing = await prisma.publisher.findUnique({
+    const existing = await prisma.publisher.findFirst({
       where: { email: data.email },
     })
 
@@ -97,11 +97,29 @@ export async function POST(req: Request) {
       )
     }
 
+    // First, create a user for this publisher (or find existing)
+    let user = await prisma.user.findFirst({
+      where: { email: data.email },
+    })
+
+    if (!user) {
+      // Create a placeholder user for admin-created publishers
+      user = await prisma.user.create({
+        data: {
+          clerkId: `admin_created_${crypto.randomBytes(8).toString('hex')}`,
+          email: data.email,
+          name: data.name,
+          role: 'PUBLISHER',
+        },
+      })
+    }
+
     // Generate API key
     const apiKey = `stb_${crypto.randomBytes(24).toString('hex')}`
 
     const publisher = await prisma.publisher.create({
       data: {
+        userId: user.id,
         name: data.name,
         email: data.email,
         company: data.company,

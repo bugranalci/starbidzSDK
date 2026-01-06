@@ -27,19 +27,22 @@ export default function NewUnityPage() {
           name: formData.get("name"),
           priority: parseInt(formData.get("priority") as string) || 1,
           config: {
-            organizationId: formData.get("organizationId"),
             gameIdAndroid: formData.get("gameIdAndroid"),
             gameIdIos: formData.get("gameIdIos"),
-            apiKey: formData.get("apiKey"),
           },
         }),
       })
 
       if (res.ok) {
-        router.push("/demand/unity")
+        router.push("/admin/demand")
+        router.refresh()
+      } else {
+        const error = await res.json()
+        alert(error.error || "Failed to create demand source")
       }
     } catch (error) {
       console.error("Failed to create Unity account:", error)
+      alert("Failed to create demand source")
     } finally {
       setIsLoading(false)
     }
@@ -48,31 +51,25 @@ export default function NewUnityPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/demand/unity" className="text-muted-foreground hover:text-foreground">
-          ← Back to Unity Ads
+        <Link href="/admin/demand" className="text-muted-foreground hover:text-foreground">
+          ← Back to Demand Sources
         </Link>
-        <h1 className="text-3xl font-bold mt-2">Add Unity Ads Account</h1>
-        <p className="text-muted-foreground">Configure a new Unity Ads integration</p>
+        <h1 className="text-3xl font-bold mt-2">Add Unity Ads</h1>
+        <p className="text-muted-foreground">Configure Unity Ads integration (client-side)</p>
       </div>
 
       <form onSubmit={onSubmit}>
         <Card>
           <CardHeader>
             <CardTitle>Account Details</CardTitle>
-            <CardDescription>Enter your Unity Ads account information</CardDescription>
+            <CardDescription>
+              Placement IDs will be configured per ad unit after creating the account
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Account Name</Label>
               <Input id="name" name="name" placeholder="My Unity Account" required />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="organizationId">Organization ID</Label>
-              <Input id="organizationId" name="organizationId" placeholder="1234567" required />
-              <p className="text-sm text-muted-foreground">
-                Find this in Unity Dashboard under Organization Settings
-              </p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -85,34 +82,32 @@ export default function NewUnityPage() {
                 <Input id="gameIdIos" name="gameIdIos" placeholder="1234568" required />
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="apiKey">API Key (Optional)</Label>
-              <Input id="apiKey" name="apiKey" type="password" placeholder="Enter API key" />
-              <p className="text-sm text-muted-foreground">
-                Required for server-side bidding and reporting
-              </p>
-              <p className="text-sm text-green-600 flex items-center gap-1">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                </svg>
-                API keys are encrypted before storage (AES-256-GCM)
-              </p>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Find Game IDs in Unity Dashboard → Monetization → Project Settings
+            </p>
 
             <div className="space-y-2">
               <Label htmlFor="priority">Priority</Label>
               <Input id="priority" name="priority" type="number" defaultValue="1" min="1" max="100" />
               <p className="text-sm text-muted-foreground">
-                Higher priority sources are queried first (1-100)
+                Lower number = higher priority in waterfall
               </p>
+            </div>
+
+            <div className="bg-purple-50 p-4 rounded-lg text-sm">
+              <p className="font-medium text-purple-800">How it works:</p>
+              <ol className="list-decimal ml-4 mt-2 space-y-1 text-purple-700">
+                <li>Create this Unity account with Game IDs</li>
+                <li>Add Ad Units with Unity Placement IDs</li>
+                <li>SDK loads ads directly from Unity using Game ID + Placement ID</li>
+              </ol>
             </div>
 
             <div className="flex gap-2 pt-4">
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create Account"}
+                {isLoading ? "Creating..." : "Create Unity Account"}
               </Button>
-              <Link href="/demand/unity">
+              <Link href="/admin/demand">
                 <Button type="button" variant="outline">Cancel</Button>
               </Link>
             </div>

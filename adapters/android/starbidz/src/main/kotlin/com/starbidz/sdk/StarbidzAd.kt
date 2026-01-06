@@ -1,4 +1,4 @@
-package io.starbidz.core
+package com.starbidz.sdk
 
 data class StarbidzAd(
     val bidId: String,

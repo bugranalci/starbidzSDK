@@ -10,6 +10,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ==================== APP & PUBLISHER ====================
+
+model App {
+  id          String   @id @default(cuid())
+  publisherId String
+  name        String
+  bundleId    String
+  platform    Platform
+  appKey      String   @unique @default(cuid())
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum Platform {
+  ANDROID
+  IOS
+  BOTH
+}
+
+enum AdFormat {
+  BANNER
+  INTERSTITIAL
+  REWARDED
+}
+
 // ==================== DEMAND SOURCES ====================
 
 model DemandSource {
@@ -26,6 +52,7 @@ model DemandSource {
   unityConfig UnityConfig?
   fyberConfig FyberConfig?
   ortbConfig  OrtbConfig?
+  adUnits     DemandAdUnit[]
 }
 
 enum DemandType {
@@ -35,36 +62,33 @@ enum DemandType {
   ORTB
 }
 
-// GAM/MCM Configuration
+// GAM/MCM Configuration - Client-side, sadece ad unit path gerekli
 model GamConfig {
   id             String       @id @default(cuid())
   demandSourceId String       @unique
   demandSource   DemandSource @relation(fields: [demandSourceId], references: [id], onDelete: Cascade)
-  networkCode    String
-  credentials    String?      // Encrypted service account JSON
+  networkCode    String?      // Opsiyonel - sadece referans için
 }
 
-// Unity Ads Configuration
+// Unity Ads Configuration - Client-side
 model UnityConfig {
   id             String       @id @default(cuid())
   demandSourceId String       @unique
   demandSource   DemandSource @relation(fields: [demandSourceId], references: [id], onDelete: Cascade)
-  organizationId String
-  gameIdAndroid  String
-  gameIdIos      String
-  apiKey         String?      // Encrypted
+  gameIdAndroid  String       // Unity Game ID for Android
+  gameIdIos      String       // Unity Game ID for iOS
 }
 
-// Fyber Configuration
+// Fyber Configuration - Client-side
 model FyberConfig {
   id             String       @id @default(cuid())
   demandSourceId String       @unique
   demandSource   DemandSource @relation(fields: [demandSourceId], references: [id], onDelete: Cascade)
-  appId          String
-  securityToken  String       // Encrypted
+  appIdAndroid   String       // Fyber App ID for Android
+  appIdIos       String       // Fyber App ID for iOS
 }
 
-// OpenRTB DSP Configuration
+// OpenRTB DSP Configuration (Server-side bidding)
 model OrtbConfig {
   id             String       @id @default(cuid())
   demandSourceId String       @unique
@@ -82,4 +106,27 @@ model OrtbConfig {
   interstitialFloor   Float   @default(5.0)
   rewardedEnabled     Boolean @default(true)
   rewardedFloor       Float   @default(8.0)
+}
+
+// Individual ad units for GAM/Unity/Fyber (TopOn style)
+model DemandAdUnit {
+  id             String       @id @default(cuid())
+  demandSourceId String
+  demandSource   DemandSource @relation(fields: [demandSourceId], references: [id], onDelete: Cascade)
+
+  name       String       // Ad Source Name (e.g., "REW-12$-AR-Cashbox")
+  externalId String       // GAM ad unit path, Unity placement ID, Fyber spot ID
+  format     AdFormat
+  bidFloor   Float        // Price($) - floor price for this ad unit
+  platform   Platform     @default(BOTH)
+
+  // Banner specific
+  width  Int?
+  height Int?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([demandSourceId, externalId, platform])
 }

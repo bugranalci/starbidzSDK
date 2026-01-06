@@ -29,7 +29,11 @@ async function main() {
       role: 'PUBLISHER',
       publisher: {
         create: {
+          name: 'Test Publisher',
+          email: 'publisher@example.com',
           company: 'Test Games Inc.',
+          isActive: true,
+          apiKey: 'stb_test_api_key_12345',
         },
       },
     },
@@ -120,7 +124,6 @@ async function main() {
       gamConfig: {
         create: {
           networkCode: '123456789',
-          credentials: null,
         },
       },
     },
@@ -151,6 +154,44 @@ async function main() {
     },
   })
   console.log('✅ OpenRTB demand source created:', ortbSource.name)
+
+  const unitySource = await prisma.demandSource.upsert({
+    where: { id: 'unity_test_source' },
+    update: {},
+    create: {
+      id: 'unity_test_source',
+      type: 'UNITY',
+      name: 'Test Unity Ads',
+      priority: 3,
+      isActive: true,
+      unityConfig: {
+        create: {
+          gameIdAndroid: '1234567',
+          gameIdIos: '7654321',
+        },
+      },
+    },
+  })
+  console.log('✅ Unity demand source created:', unitySource.name)
+
+  const fyberSource = await prisma.demandSource.upsert({
+    where: { id: 'fyber_test_source' },
+    update: {},
+    create: {
+      id: 'fyber_test_source',
+      type: 'FYBER',
+      name: 'Test Fyber/DT Exchange',
+      priority: 4,
+      isActive: true,
+      fyberConfig: {
+        create: {
+          appIdAndroid: 'test_app_id_android',
+          appIdIos: 'test_app_id_ios',
+        },
+      },
+    },
+  })
+  console.log('✅ Fyber demand source created:', fyberSource.name)
 
   console.log('')
   console.log('🎉 Seed completed!')

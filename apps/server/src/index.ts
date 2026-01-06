@@ -39,13 +39,14 @@ const app = new Elysia()
   .use(eventRoutes)
   .use(analyticsRoutes)
   // Error handler for middleware errors
-  .onBeforeHandle(({ authError, rateLimitError, set }) => {
-    if (rateLimitError) {
-      set.status = 429
-      return { success: false, error: rateLimitError }
+  .onBeforeHandle((ctx) => {
+    const context = ctx as typeof ctx & { authError?: string; rateLimitError?: string }
+    if (context.rateLimitError) {
+      context.set.status = 429
+      return { success: false, error: context.rateLimitError }
     }
-    if (authError) {
-      return { success: false, error: authError }
+    if (context.authError) {
+      return { success: false, error: context.authError }
     }
   })
   .listen(process.env.PORT || 8080)

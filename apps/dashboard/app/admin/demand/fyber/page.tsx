@@ -54,7 +54,7 @@ export default async function FyberPage() {
                 <TableRow key={source.id}>
                   <TableCell className="font-medium">{source.name}</TableCell>
                   <TableCell>
-                    <code className="text-sm">{source.fyberConfig?.appId || "-"}</code>
+                    <code className="text-sm">{source.fyberConfig?.appIdAndroid || "-"}</code>
                   </TableCell>
                   <TableCell>{source.adUnits.length}</TableCell>
                   <TableCell>{source.priority}</TableCell>

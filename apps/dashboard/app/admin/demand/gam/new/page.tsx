@@ -2,6 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 export default function NewGamPage() {
   const router = useRouter()
@@ -17,8 +22,7 @@ export default function NewGamPage() {
       name: formData.get('name'),
       priority: parseInt(formData.get('priority') as string) || 1,
       config: {
-        networkCode: formData.get('networkCode'),
-        credentials: formData.get('credentials') || null,
+        networkCode: formData.get('networkCode') || null,
       },
     }
 
@@ -44,96 +48,79 @@ export default function NewGamPage() {
   }
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold mb-6">Add GAM/MCM Account</h1>
+    <div className="space-y-6">
+      <div>
+        <Link href="/admin/demand" className="text-muted-foreground hover:text-foreground">
+          ← Back to Demand Sources
+        </Link>
+        <h1 className="text-3xl font-bold mt-2">Add Google Ad Manager</h1>
+        <p className="text-muted-foreground">Configure GAM/MCM integration (client-side)</p>
+      </div>
 
-      <form onSubmit={onSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium mb-2">
-            Display Name
-          </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            required
-            className="w-full px-3 py-2 border rounded-md"
-            placeholder="My GAM Account"
-          />
-        </div>
+      <form onSubmit={onSubmit}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Account Details</CardTitle>
+            <CardDescription>
+              Ad Unit paths will be configured per placement after creating the account
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Display Name</Label>
+              <Input
+                id="name"
+                name="name"
+                placeholder="My GAM Account"
+                required
+              />
+            </div>
 
-        <div>
-          <label htmlFor="networkCode" className="block text-sm font-medium mb-2">
-            Network Code
-          </label>
-          <input
-            id="networkCode"
-            name="networkCode"
-            type="text"
-            required
-            className="w-full px-3 py-2 border rounded-md"
-            placeholder="123456789"
-          />
-          <p className="text-sm text-gray-500 mt-1">
-            Found in GAM: Admin → Global Settings → Network Code
-          </p>
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="networkCode">Network Code (Optional)</Label>
+              <Input
+                id="networkCode"
+                name="networkCode"
+                placeholder="123456789"
+              />
+              <p className="text-sm text-muted-foreground">
+                Found in GAM: Admin → Global Settings. Used for reference only.
+              </p>
+            </div>
 
-        <div>
-          <label htmlFor="credentials" className="block text-sm font-medium mb-2">
-            Service Account JSON (optional)
-          </label>
-          <textarea
-            id="credentials"
-            name="credentials"
-            rows={6}
-            className="w-full px-3 py-2 border rounded-md font-mono text-sm"
-            placeholder='{"type": "service_account", ...}'
-          />
-          <p className="text-sm text-gray-500 mt-1">
-            Required for programmatic access. Create in Google Cloud Console.
-          </p>
-          <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-            </svg>
-            Credentials are encrypted before storage (AES-256-GCM)
-          </p>
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="priority">Priority</Label>
+              <Input
+                id="priority"
+                name="priority"
+                type="number"
+                min="1"
+                defaultValue="1"
+              />
+              <p className="text-sm text-muted-foreground">
+                Lower number = higher priority in waterfall
+              </p>
+            </div>
 
-        <div>
-          <label htmlFor="priority" className="block text-sm font-medium mb-2">
-            Priority
-          </label>
-          <input
-            id="priority"
-            name="priority"
-            type="number"
-            min="1"
-            defaultValue="1"
-            className="w-full px-3 py-2 border rounded-md"
-          />
-          <p className="text-sm text-gray-500 mt-1">
-            Lower number = higher priority in auction
-          </p>
-        </div>
+            <div className="bg-blue-50 p-4 rounded-lg text-sm">
+              <p className="font-medium text-blue-800">How it works:</p>
+              <ol className="list-decimal ml-4 mt-2 space-y-1 text-blue-700">
+                <li>Create this GAM account</li>
+                <li>Add Ad Units with GAM paths (e.g., /21728129623/app_banner)</li>
+                <li>SDK loads ads directly from GAM using these paths</li>
+              </ol>
+            </div>
 
-        <div className="flex gap-4">
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md disabled:opacity-50"
-          >
-            {isLoading ? 'Creating...' : 'Create GAM Account'}
-          </button>
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="px-4 py-2 border rounded-md"
-          >
-            Cancel
-          </button>
-        </div>
+            <div className="flex gap-2 pt-4">
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? 'Creating...' : 'Create GAM Account'}
+              </Button>
+              <Link href="/admin/demand">
+                <Button type="button" variant="outline">Cancel</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </form>
     </div>
   )

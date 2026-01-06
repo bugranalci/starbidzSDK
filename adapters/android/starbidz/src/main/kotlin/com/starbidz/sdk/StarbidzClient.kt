@@ -1,4 +1,4 @@
-package io.starbidz.core
+package com.starbidz.sdk
 
 import android.content.Context
 import android.os.Build

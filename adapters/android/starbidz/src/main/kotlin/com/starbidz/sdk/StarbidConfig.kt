@@ -1,4 +1,4 @@
-package io.starbidz.core
+package com.starbidz.sdk
 
 data class StarbidConfig(
     val appKey: String,

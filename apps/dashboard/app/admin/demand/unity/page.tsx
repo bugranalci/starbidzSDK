@@ -54,7 +54,7 @@ export default async function UnityPage() {
                 <TableRow key={source.id}>
                   <TableCell className="font-medium">{source.name}</TableCell>
                   <TableCell>
-                    <code className="text-sm">{source.unityConfig?.organizationId || "-"}</code>
+                    <code className="text-sm">{source.unityConfig?.gameIdAndroid || "-"}</code>
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
