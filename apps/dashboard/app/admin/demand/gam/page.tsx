@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import type { DemandSource, GamConfig, DemandAdUnit } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
-type GamSource = DemandSource & { gamConfig: GamConfig | null; adUnits: DemandAdUnit[] }
+type GamSource = Prisma.DemandSourceGetPayload<{ include: { gamConfig: true; adUnits: true } }>
 
 async function getGamSources() {
   const sources = await prisma.demandSource.findMany({

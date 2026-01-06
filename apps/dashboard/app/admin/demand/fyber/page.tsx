@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import type { DemandSource, FyberConfig, DemandAdUnit } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
-type FyberSource = DemandSource & { fyberConfig: FyberConfig | null; adUnits: DemandAdUnit[] }
+type FyberSource = Prisma.DemandSourceGetPayload<{ include: { fyberConfig: true; adUnits: true } }>
 
 async function getFyberSources() {
   const sources = await prisma.demandSource.findMany({

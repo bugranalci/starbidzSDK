@@ -74,7 +74,7 @@ export async function GET() {
     })
 
     // Mask sensitive credentials (only ORTB has sensitive data now)
-    const maskedSources = demandSources.map((source) =>
+    const maskedSources = demandSources.map((source: typeof demandSources[number]) =>
       maskCredentials(source as unknown as Record<string, unknown>)
     )
 

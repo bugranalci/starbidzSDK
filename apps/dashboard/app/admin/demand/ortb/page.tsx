@@ -4,9 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import type { DemandSource, OrtbConfig } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
-type OrtbSource = DemandSource & { ortbConfig: OrtbConfig | null }
+type OrtbSource = Prisma.DemandSourceGetPayload<{ include: { ortbConfig: true } }>
 
 async function getOrtbSources() {
   const sources = await prisma.demandSource.findMany({

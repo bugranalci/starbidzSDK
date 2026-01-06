@@ -1,9 +1,9 @@
 import { getOrCreateUser } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import Link from 'next/link'
-import type { App } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
-type AppWithCount = App & { _count: { adUnits: number } }
+type AppWithCount = Prisma.AppGetPayload<{ include: { _count: { select: { adUnits: true } } } }>
 
 export default async function AppsPage() {
   const user = await getOrCreateUser()

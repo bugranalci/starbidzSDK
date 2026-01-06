@@ -1,14 +1,10 @@
 import { prisma } from '@/lib/db'
 import Link from 'next/link'
-import type { DemandSource, GamConfig, UnityConfig, FyberConfig, OrtbConfig } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
-type DemandSourceFull = DemandSource & {
-  gamConfig: GamConfig | null
-  unityConfig: UnityConfig | null
-  fyberConfig: FyberConfig | null
-  ortbConfig: OrtbConfig | null
-  _count: { adUnits: number }
-}
+type DemandSourceFull = Prisma.DemandSourceGetPayload<{
+  include: { gamConfig: true; unityConfig: true; fyberConfig: true; ortbConfig: true; _count: { select: { adUnits: true } } }
+}>
 
 export default async function DemandSourcesPage() {
   const demandSources = await prisma.demandSource.findMany({

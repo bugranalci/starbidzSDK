@@ -5,9 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import type { App, AdUnit } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
-type AppWithUnits = App & { adUnits: AdUnit[] }
+type AppWithUnits = Prisma.AppGetPayload<{ include: { adUnits: true } }>
 
 async function getPublisher(id: string) {
   const publisher = await prisma.publisher.findUnique({

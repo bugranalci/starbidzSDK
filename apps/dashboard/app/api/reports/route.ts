@@ -59,7 +59,7 @@ export async function GET(req: Request) {
     })
 
     // Generate mock stats for each app (would come from analytics table in production)
-    const appStats = apps.map((app) => ({
+    const appStats = apps.map((app: typeof apps[number]) => ({
       appId: app.id,
       appName: app.name,
       platform: app.platform,
@@ -112,17 +112,17 @@ export async function GET(req: Request) {
 
     // Calculate totals
     const totals = {
-      impressions: appStats.reduce((acc, app) => acc + app.impressions, 0),
-      revenue: appStats.reduce((acc, app) => acc + app.revenue, 0),
+      impressions: appStats.reduce((acc: number, app: typeof appStats[number]) => acc + app.impressions, 0),
+      revenue: appStats.reduce((acc: number, app: typeof appStats[number]) => acc + app.revenue, 0),
       apps: apps.length,
-      adUnits: apps.reduce((acc, app) => acc + app.adUnits.length, 0),
+      adUnits: apps.reduce((acc: number, app: typeof apps[number]) => acc + app.adUnits.length, 0),
     }
 
     return NextResponse.json({
       overview: {
         ...totals,
         avgEcpm: totals.impressions > 0 ? (totals.revenue / totals.impressions) * 1000 : 0,
-        avgFillRate: appStats.reduce((acc, app) => acc + app.fillRate, 0) / appStats.length || 0,
+        avgFillRate: appStats.reduce((acc: number, app: typeof appStats[number]) => acc + app.fillRate, 0) / appStats.length || 0,
       },
       apps: appStats,
       formats: filteredFormatStats,

@@ -1,13 +1,10 @@
 import { prisma } from '@/lib/db'
 import Link from 'next/link'
-import type { DemandSource, GamConfig, UnityConfig, FyberConfig, OrtbConfig } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
-type DemandSourceWithConfigs = DemandSource & {
-  gamConfig: GamConfig | null
-  unityConfig: UnityConfig | null
-  fyberConfig: FyberConfig | null
-  ortbConfig: OrtbConfig | null
-}
+type DemandSourceWithConfigs = Prisma.DemandSourceGetPayload<{
+  include: { gamConfig: true; unityConfig: true; fyberConfig: true; ortbConfig: true }
+}>
 
 export default async function AdminDashboardPage() {
   const [

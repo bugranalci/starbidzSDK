@@ -4,7 +4,9 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { AdUnitActions } from '@/components/ad-unit-actions'
 import { AppStatusToggle } from '@/components/app-status-toggle'
-import type { AdUnit } from '@prisma/client'
+import { Prisma } from '@prisma/client'
+
+type AdUnitType = Prisma.AdUnitGetPayload<{}>
 
 export default async function AppDetailPage({
   params,
@@ -104,7 +106,7 @@ export default async function AppDetailPage({
           </div>
         ) : (
           <div className="divide-y">
-            {app.adUnits.map((unit: AdUnit) => (
+            {app.adUnits.map((unit: AdUnitType) => (
               <div key={unit.id} className="px-6 py-4">
                 <div className="flex justify-between items-center">
                   <div>

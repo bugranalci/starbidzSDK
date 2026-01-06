@@ -7,9 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CodeBlock } from '@/components/code-block'
 import { CopyableCode } from '@/components/copy-button'
-import type { App, AdUnit } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
-type AppWithUnits = App & { adUnits: AdUnit[] }
+type AppWithUnits = Prisma.AppGetPayload<{ include: { adUnits: true } }>
+type AdUnitType = Prisma.AdUnitGetPayload<{}>
 
 export default async function IntegrationGuidePage({
   params,
@@ -81,7 +82,7 @@ export default async function IntegrationGuidePage({
             <div>
               <label className="text-sm font-medium text-gray-500">Placement IDs</label>
               <div className="mt-1 space-y-2">
-                {app.adUnits.map((unit: AdUnit) => (
+                {app.adUnits.map((unit: AdUnitType) => (
                   <div key={unit.id} className="flex items-center justify-between bg-gray-100 px-3 py-2 rounded">
                     <span className="text-sm">{unit.name} ({unit.format})</span>
                     <code className="text-sm font-mono">{unit.placementId}</code>

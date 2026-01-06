@@ -13,9 +13,9 @@ import {
   type DailyStats,
   type FormatStats,
 } from "@/lib/analytics"
-import type { App, AdUnit } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
-type AppWithUnits = App & { adUnits: AdUnit[] }
+type AppWithUnits = Prisma.AppGetPayload<{ include: { adUnits: true } }>
 
 async function getPublisherStats(publisherId: string) {
   const apps = await prisma.app.findMany({

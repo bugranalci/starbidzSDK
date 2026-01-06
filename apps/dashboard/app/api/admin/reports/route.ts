@@ -128,7 +128,7 @@ export async function GET(req: Request) {
     const avgFillRate = totalRequests > 0 ? (totalImpressions / totalRequests) * 100 : 0
 
     // Map demand source stats to include database info
-    const enrichedDemandSourceStats = demandSources.map((source) => {
+    const enrichedDemandSourceStats = demandSources.map((source: typeof demandSources[number]) => {
       const stats = demandSourceStats.find(
         (s) => s.demand_source.toLowerCase() === source.type.toLowerCase()
       )

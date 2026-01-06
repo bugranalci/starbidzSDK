@@ -5,7 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import type { DemandAdUnit } from '@prisma/client'
+import { Prisma } from '@prisma/client'
+
+type DemandAdUnitType = Prisma.DemandAdUnitGetPayload<{}>
 
 async function getFyberSource(id: string) {
   const source = await prisma.demandSource.findUnique({
@@ -122,7 +124,7 @@ export default async function FyberDetailPage({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {source.adUnits.map((unit: DemandAdUnit) => (
+              {source.adUnits.map((unit: DemandAdUnitType) => (
                 <TableRow key={unit.id}>
                   <TableCell className="font-mono">{unit.externalId}</TableCell>
                   <TableCell>
