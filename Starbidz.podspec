@@ -19,8 +19,8 @@ Pod::Spec.new do |s|
   s.author           = { 'Starbidz' => 'dev@starbidz.io' }
   s.source           = { :git => 'https://github.com/bugranalci/starbidzSDK.git', :tag => s.version.to_s }
 
-  # Platform support - iOS 11.0 minimum for broader device support
-  s.ios.deployment_target = '11.0'
+  # Platform support - iOS 15.0 minimum for modern device support
+  s.ios.deployment_target = '15.0'
   s.swift_version = '5.0'
 
   # Source files location
