@@ -37,7 +37,8 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Generate Prisma Client
-        run: pnpm --filter dashboard prisma generate
+        run: npx prisma generate
+        working-directory: apps/dashboard
 
       - name: Lint
         run: pnpm --filter dashboard lint
@@ -62,7 +63,8 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Generate Prisma Client
-        run: pnpm --filter dashboard prisma generate
+        run: npx prisma generate
+        working-directory: apps/dashboard
 
       - name: Type check
         run: pnpm --filter dashboard type-check
@@ -88,7 +90,8 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Generate Prisma Client
-        run: pnpm --filter dashboard prisma generate
+        run: npx prisma generate
+        working-directory: apps/dashboard
 
       - name: Build
         run: pnpm --filter dashboard build
