@@ -1,0 +1,11 @@
+# JitPack build configuration for Starbidz SDK
+# https://github.com/bugranalci/starbidzSDK
+
+jdk:
+  - openjdk17
+
+before_install:
+  - cd adapters/android && chmod +x gradlew
+
+install:
+  - cd adapters/android && ./gradlew :starbidz:assembleRelease :starbidz:publishToMavenLocal -x test
