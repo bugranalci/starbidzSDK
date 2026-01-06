@@ -5,7 +5,7 @@ jdk:
   - openjdk17
 
 before_install:
-  - cd adapters/android && chmod +x gradlew
+  - chmod +x adapters/android/gradlew
 
 install:
-  - cd adapters/android && ./gradlew :starbidz:assembleRelease :starbidz:publishToMavenLocal -x test
+  - adapters/android/gradlew -p adapters/android :starbidz:assembleRelease :starbidz:publishToMavenLocal -x test
