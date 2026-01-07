@@ -1,0 +1,12 @@
+<svg width="140" height="32" viewBox="0 0 140 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Star icon -->
+  <path d="M16 2L19.09 11.26L29 12.27L21.18 18.97L23.82 29L16 23.77L8.18 29L10.82 18.97L3 12.27L12.91 11.26L16 2Z" fill="url(#starGradient)"/>
+  <!-- Starbidz text -->
+  <text x="36" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="white">Starbidz</text>
+  <defs>
+    <linearGradient id="starGradient" x1="3" y1="2" x2="29" y2="29" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A855F7"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+</svg>

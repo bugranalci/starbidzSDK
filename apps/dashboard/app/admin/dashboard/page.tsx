@@ -30,57 +30,63 @@ export default async function AdminDashboardPage() {
     }),
   ])
 
+  const stats = [
+    { label: 'Publishers', value: publisherCount, href: '/admin/publishers', color: 'from-violet-500 to-purple-600' },
+    { label: 'Apps', value: appCount, href: '/admin/apps', color: 'from-blue-500 to-cyan-600' },
+    { label: 'Ad Units', value: adUnitCount, href: '/admin/ad-units', color: 'from-emerald-500 to-teal-600' },
+    { label: 'Demand Sources', value: demandSourceCount, href: '/admin/demand', color: 'from-orange-500 to-amber-600' },
+  ]
+
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+      <h1 className="text-2xl font-bold mb-6 text-white">Admin Dashboard</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Publishers</h3>
-          <p className="text-3xl font-bold">{publisherCount}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Apps</h3>
-          <p className="text-3xl font-bold">{appCount}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Ad Units</h3>
-          <p className="text-3xl font-bold">{adUnitCount}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Demand Sources</h3>
-          <p className="text-3xl font-bold">{demandSourceCount}</p>
-        </div>
+        {stats.map((stat) => (
+          <Link
+            key={stat.label}
+            href={stat.href}
+            className="group bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20 hover:bg-white/20 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+          >
+            <h3 className="text-sm font-medium text-gray-300">{stat.label}</h3>
+            <p className={`text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+              {stat.value}
+            </p>
+            <span className="text-xs text-gray-400 group-hover:text-white transition-colors">
+              Click to view →
+            </span>
+          </Link>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b flex justify-between items-center">
-            <h2 className="text-lg font-semibold">Active Demand Sources</h2>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+          <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-white">Active Demand Sources</h2>
             <Link
               href="/admin/demand"
-              className="text-sm text-blue-600 hover:underline"
+              className="text-sm text-violet-400 hover:text-violet-300 transition-colors"
             >
               Manage →
             </Link>
           </div>
           {activeDemandSources.length === 0 ? (
-            <div className="p-6 text-center text-gray-500">
+            <div className="p-6 text-center text-gray-400">
               No active demand sources. Add your first demand source to start serving ads.
             </div>
           ) : (
-            <div className="divide-y">
+            <div className="divide-y divide-white/10">
               {activeDemandSources.map((source: DemandSourceWithConfigs) => (
                 <div key={source.id} className="px-6 py-4 flex justify-between items-center">
                   <div>
-                    <h3 className="font-medium">{source.name}</h3>
-                    <p className="text-sm text-gray-500">{source.type}</p>
+                    <h3 className="font-medium text-white">{source.name}</h3>
+                    <p className="text-sm text-gray-400">{source.type}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-400">
                       Priority: {source.priority}
                     </span>
-                    <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800">
+                    <span className="px-2 py-1 rounded text-xs bg-green-500/20 text-green-400 border border-green-500/30">
                       Active
                     </span>
                   </div>
@@ -90,31 +96,31 @@ export default async function AdminDashboardPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b">
-            <h2 className="text-lg font-semibold">Quick Actions</h2>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
+          <div className="px-6 py-4 border-b border-white/10">
+            <h2 className="text-lg font-semibold text-white">Quick Actions</h2>
           </div>
           <div className="p-6 space-y-3">
             <Link
               href="/admin/demand/gam/new"
-              className="block px-4 py-3 bg-blue-50 rounded-lg hover:bg-blue-100"
+              className="block px-4 py-3 bg-blue-500/10 rounded-lg hover:bg-blue-500/20 border border-blue-500/20 transition-colors"
             >
-              <span className="font-medium">Add GAM/MCM Account</span>
-              <p className="text-sm text-gray-500">Connect Google Ad Manager</p>
+              <span className="font-medium text-white">Add GAM/MCM Account</span>
+              <p className="text-sm text-gray-400">Connect Google Ad Manager</p>
             </Link>
             <Link
               href="/admin/demand/unity/new"
-              className="block px-4 py-3 bg-purple-50 rounded-lg hover:bg-purple-100"
+              className="block px-4 py-3 bg-purple-500/10 rounded-lg hover:bg-purple-500/20 border border-purple-500/20 transition-colors"
             >
-              <span className="font-medium">Add Unity Ads</span>
-              <p className="text-sm text-gray-500">Connect Unity Ads network</p>
+              <span className="font-medium text-white">Add Unity Ads</span>
+              <p className="text-sm text-gray-400">Connect Unity Ads network</p>
             </Link>
             <Link
               href="/admin/demand/ortb/new"
-              className="block px-4 py-3 bg-green-50 rounded-lg hover:bg-green-100"
+              className="block px-4 py-3 bg-green-500/10 rounded-lg hover:bg-green-500/20 border border-green-500/20 transition-colors"
             >
-              <span className="font-medium">Add OpenRTB DSP</span>
-              <p className="text-sm text-gray-500">Connect any RTB endpoint</p>
+              <span className="font-medium text-white">Add OpenRTB DSP</span>
+              <p className="text-sm text-gray-400">Connect any RTB endpoint</p>
             </Link>
           </div>
         </div>

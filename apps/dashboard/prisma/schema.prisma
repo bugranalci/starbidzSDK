@@ -38,6 +38,7 @@ model Publisher {
   isActive   Boolean  @default(true)
   apiKey     String?  @unique @default(cuid())
   webhookUrl String?
+  margin     Float    @default(0.20) // Revenue share margin (e.g., 0.20 = 20%)
   apps       App[]
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt

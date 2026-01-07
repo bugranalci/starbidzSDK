@@ -44,6 +44,7 @@ export async function GET(req: Request) {
       prisma.publisher.findMany({
         where,
         include: {
+          user: true,
           apps: true,
           _count: { select: { apps: true } },
         },
@@ -76,6 +77,7 @@ const createPublisherSchema = z.object({
   email: z.string().email(),
   company: z.string().nullable().optional(),
   webhookUrl: z.string().url().nullable().optional(),
+  margin: z.number().min(0).max(1).default(0.20), // Revenue share margin (0-1)
 })
 
 export async function POST(req: Request) {
@@ -125,6 +127,7 @@ export async function POST(req: Request) {
         company: data.company,
         webhookUrl: data.webhookUrl,
         apiKey,
+        margin: data.margin ?? 0.20,
       },
       include: {
         _count: { select: { apps: true } },
