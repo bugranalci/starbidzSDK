@@ -27,7 +27,10 @@ export interface TrackEventParams {
   requestId?: string
   demandSource?: string | null
   bidPrice?: number | null
+  netPrice?: number | null
   winPrice?: number | null
+  margin?: number | null
+  publisherId?: string | null
   country?: string | null
   deviceType?: string | null
   os?: string | null
@@ -48,7 +51,10 @@ export async function trackEvent(params: TrackEventParams): Promise<void> {
     requestId,
     demandSource,
     bidPrice,
+    netPrice,
     winPrice,
+    margin,
+    publisherId,
     country,
     deviceType,
     os,
@@ -66,7 +72,10 @@ export async function trackEvent(params: TrackEventParams): Promise<void> {
     request_id: requestId || null,
     demand_source: demandSource || null,
     bid_price: bidPrice ?? null,
+    net_price: netPrice ?? null,
     win_price: winPrice ?? null,
+    margin: margin ?? null,
+    publisher_id: publisherId || null,
     country: country || null,
     device_type: deviceType || null,
     os: os || null,
@@ -90,6 +99,7 @@ export async function trackBidRequest(params: {
   osVersion?: string
   appVersion?: string
   format?: string
+  publisherId?: string | null
 }): Promise<void> {
   await trackEvent({
     eventType: 'BID_REQUEST',
@@ -106,6 +116,9 @@ export async function trackBidResponse(params: {
   requestId: string
   demandSource: string | null
   bidPrice: number | null
+  netPrice?: number | null
+  margin?: number | null
+  publisherId?: string | null
   latencyMs: number
   format?: string
 }): Promise<void> {

@@ -10,18 +10,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ==================== APP & PUBLISHER ====================
+// ==================== PUBLISHER ====================
+
+model Publisher {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  name       String?
+  email      String?
+  company    String?
+  isActive   Boolean  @default(true)
+  apiKey     String?  @unique @default(cuid())
+  webhookUrl String?
+  margin     Float    @default(0.20) // Revenue share margin (e.g., 0.20 = 20%)
+  apps       App[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ==================== APP ====================
 
 model App {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   publisherId String
+  publisher   Publisher @relation(fields: [publisherId], references: [id], onDelete: Cascade)
   name        String
   bundleId    String
   platform    Platform
-  appKey      String   @unique @default(cuid())
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  appKey      String    @unique @default(cuid())
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 enum Platform {

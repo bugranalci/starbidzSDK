@@ -1,6 +1,38 @@
 import { Elysia, t } from 'elysia'
 import { auctionEngine } from '../auction/engine'
 import { trackBidRequest, trackBidResponse } from '../tracking'
+import { prisma } from '../lib/db'
+
+// Cache for app/publisher data to avoid repeated DB lookups
+const appCache = new Map<string, { publisherId: string; margin: number; expiresAt: number }>()
+const CACHE_TTL_MS = 60000 // 1 minute cache
+
+async function getAppWithMargin(appKey: string): Promise<{ publisherId: string; margin: number } | null> {
+  // Check cache first
+  const cached = appCache.get(appKey)
+  if (cached && cached.expiresAt > Date.now()) {
+    return { publisherId: cached.publisherId, margin: cached.margin }
+  }
+
+  // Fetch from database
+  const app = await prisma.app.findUnique({
+    where: { appKey },
+    include: { publisher: { select: { id: true, margin: true } } }
+  })
+
+  if (!app || !app.publisher) {
+    return null
+  }
+
+  // Cache the result
+  appCache.set(appKey, {
+    publisherId: app.publisher.id,
+    margin: app.publisher.margin,
+    expiresAt: Date.now() + CACHE_TTL_MS
+  })
+
+  return { publisherId: app.publisher.id, margin: app.publisher.margin }
+}
 
 const DeviceSchema = t.Object({
   os: t.Union([t.Literal('android'), t.Literal('ios')]),
@@ -55,6 +87,7 @@ const CreativeSchema = t.Object({
 const BidSchema = t.Object({
   id: t.String(),
   price: t.Number(),
+  net_price: t.Number(),
   currency: t.String(),
   demand_source: t.String(),
   creative: CreativeSchema,
@@ -74,6 +107,11 @@ export const bidRoutes = new Elysia({ prefix: '/v1' })
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
     try {
+      // Get publisher margin for this app
+      const appData = await getAppWithMargin(body.app_key)
+      const margin = appData?.margin ?? 0.20 // Default 20% margin if not found
+      const publisherId = appData?.publisherId ?? null
+
       // Track bid request (async, don't await)
       trackBidRequest({
         placementId: body.placement_id,
@@ -85,19 +123,26 @@ export const bidRoutes = new Elysia({ prefix: '/v1' })
         osVersion: body.device.osv,
         appVersion: body.app.version,
         format: body.format,
+        publisherId,
       }).catch(console.error)
 
       const result = await auctionEngine.runAuction(body)
       const latencyMs = Date.now() - startTime
 
       if (result.winner) {
-        // Track successful bid response
+        const grossPrice = result.winner.price
+        const netPrice = grossPrice * (1 - margin) // Publisher receives this amount
+
+        // Track successful bid response with margin info
         trackBidResponse({
           placementId: body.placement_id,
           appKey: body.app_key,
           requestId,
           demandSource: result.winner.source,
-          bidPrice: result.winner.price,
+          bidPrice: grossPrice,
+          netPrice,
+          margin,
+          publisherId,
           latencyMs,
           format: body.format,
         }).catch(console.error)
@@ -106,7 +151,8 @@ export const bidRoutes = new Elysia({ prefix: '/v1' })
           success: true,
           bid: {
             id: result.winner.bidId,
-            price: result.winner.price,
+            price: grossPrice,           // Gross price from demand source
+            net_price: netPrice,         // Net price after margin (publisher receives)
             currency: 'USD',
             demand_source: result.winner.source,
             creative: result.winner.creative,
@@ -123,6 +169,9 @@ export const bidRoutes = new Elysia({ prefix: '/v1' })
         requestId,
         demandSource: null,
         bidPrice: null,
+        netPrice: null,
+        margin,
+        publisherId,
         latencyMs,
         format: body.format,
       }).catch(console.error)

@@ -1,6 +1,9 @@
 import { prisma } from '@/lib/db'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function AdminAppsPage() {
   const apps = await prisma.app.findMany({
     include: {

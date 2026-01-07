@@ -17,7 +17,10 @@ interface EventPayload {
   app_key: string
   demand_source: string | null
   bid_price: number | null
+  net_price: number | null
   win_price: number | null
+  margin: number | null
+  publisher_id: string | null
   country: string | null
   device_type: string | null
   os: string | null

@@ -2,6 +2,9 @@ import { prisma } from '@/lib/db'
 import Link from 'next/link'
 import { Prisma } from '@prisma/client'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 type DemandSourceWithConfigs = Prisma.DemandSourceGetPayload<{
   include: { gamConfig: true; unityConfig: true; fyberConfig: true; ortbConfig: true }
 }>
