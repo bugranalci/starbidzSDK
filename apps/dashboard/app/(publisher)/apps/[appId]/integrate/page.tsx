@@ -786,7 +786,8 @@ function IOSIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; serverUrl:
               In Xcode: <strong>File → Add Package Dependencies</strong>, then add each of the following packages:
             </p>
 
-            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+            <p className="text-sm font-medium text-gray-700 mb-2">Swift Package Manager (SPM)</p>
+            <div className="bg-gray-50 p-4 rounded-lg space-y-3 mb-4">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-gray-700">Starbidz SDK & Adapters</p>
                 <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/bugranalci/starbidzSDK</code>
@@ -802,18 +803,12 @@ function IOSIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; serverUrl:
                 <p className="text-sm font-medium text-gray-700">Google IMA SDK</p>
                 <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/googleads/swift-package-manager-google-interactive-media-ads-ios</code>
               </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-700">Unity Ads SDK</p>
-                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/Unity-Technologies/unity-ads-ios</code>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-700">Fyber SDK</p>
-                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/nicklockwood/VerizonAdsStandardEdition</code>
-                <p className="text-xs text-gray-500">Or follow Fyber documentation for latest SPM URL</p>
-              </div>
             </div>
+
+            <p className="text-sm font-medium text-gray-700 mb-2">CocoaPods (Podfile)</p>
+            <CodeBlock language="ruby">{`pod 'UnityAds', '~> 4.12'
+pod 'Fyber_Marketplace_SDK', '~> 8.3'`}</CodeBlock>
+            <p className="text-xs text-gray-500 mt-2">Unity Ads and Fyber do not support SPM, use CocoaPods for these SDKs.</p>
           </CardContent>
         </Card>
 
@@ -1067,7 +1062,8 @@ class RewardedViewController: UIViewController, MARewardedAdDelegate {
               In Xcode: <strong>File → Add Package Dependencies</strong>, then add each of the following packages:
             </p>
 
-            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+            <p className="text-sm font-medium text-gray-700 mb-2">Swift Package Manager (SPM)</p>
+            <div className="bg-gray-50 p-4 rounded-lg space-y-3 mb-4">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-gray-700">Starbidz SDK & Adapters</p>
                 <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/bugranalci/starbidzSDK</code>
@@ -1083,18 +1079,12 @@ class RewardedViewController: UIViewController, MARewardedAdDelegate {
                 <p className="text-sm font-medium text-gray-700">Google IMA SDK</p>
                 <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/googleads/swift-package-manager-google-interactive-media-ads-ios</code>
               </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-700">Unity Ads SDK</p>
-                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/Unity-Technologies/unity-ads-ios</code>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-700">Fyber SDK</p>
-                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/nicklockwood/VerizonAdsStandardEdition</code>
-                <p className="text-xs text-gray-500">Or follow Fyber documentation for latest SPM URL</p>
-              </div>
             </div>
+
+            <p className="text-sm font-medium text-gray-700 mb-2">CocoaPods (Podfile)</p>
+            <CodeBlock language="ruby">{`pod 'UnityAds', '~> 4.12'
+pod 'Fyber_Marketplace_SDK', '~> 8.3'`}</CodeBlock>
+            <p className="text-xs text-gray-500 mt-2">Unity Ads and Fyber do not support SPM, use CocoaPods for these SDKs.</p>
           </CardContent>
         </Card>
 
@@ -1220,7 +1210,8 @@ GADRewardedAd.load(withAdUnitID: "YOUR_AD_UNIT_ID", request: GADRequest()) { ad,
               In Xcode: <strong>File → Add Package Dependencies</strong>, then add each of the following packages:
             </p>
 
-            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+            <p className="text-sm font-medium text-gray-700 mb-2">Swift Package Manager (SPM)</p>
+            <div className="bg-gray-50 p-4 rounded-lg space-y-3 mb-4">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-gray-700">Starbidz SDK & Adapters</p>
                 <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/bugranalci/starbidzSDK</code>
@@ -1228,27 +1219,16 @@ GADRewardedAd.load(withAdUnitID: "YOUR_AD_UNIT_ID", request: GADRequest()) { ad,
               </div>
 
               <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-700">ironSource LevelPlay SDK</p>
-                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/nicklockwood/LevelPlay</code>
-                <p className="text-xs text-gray-500">Or follow ironSource documentation for latest SPM URL</p>
-              </div>
-
-              <div className="space-y-1">
                 <p className="text-sm font-medium text-gray-700">Google IMA SDK</p>
                 <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/googleads/swift-package-manager-google-interactive-media-ads-ios</code>
               </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-700">Unity Ads SDK</p>
-                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/Unity-Technologies/unity-ads-ios</code>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-700">Fyber SDK</p>
-                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/nicklockwood/VerizonAdsStandardEdition</code>
-                <p className="text-xs text-gray-500">Or follow Fyber documentation for latest SPM URL</p>
-              </div>
             </div>
+
+            <p className="text-sm font-medium text-gray-700 mb-2">CocoaPods (Podfile)</p>
+            <CodeBlock language="ruby">{`pod 'IronSourceSDK', '~> 8.4'
+pod 'UnityAds', '~> 4.12'
+pod 'Fyber_Marketplace_SDK', '~> 8.3'`}</CodeBlock>
+            <p className="text-xs text-gray-500 mt-2">ironSource, Unity Ads and Fyber do not support SPM, use CocoaPods for these SDKs.</p>
           </CardContent>
         </Card>
 
