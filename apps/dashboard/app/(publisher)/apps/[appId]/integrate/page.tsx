@@ -133,18 +133,7 @@ function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; server
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-gray-600">
-              Add the following to your app-level <code className="bg-gray-100 px-1 rounded">build.gradle</code> file:
-            </p>
-            <CodeBlock language="groovy">{`dependencies {
-    // AppLovin MAX SDK
-    implementation 'com.applovin:applovin-sdk:12.4.0'
-
-    // Starbidz SDK (via JitPack)
-    implementation 'com.github.bugranalci:starbidzSDK:1.0.0'
-}`}</CodeBlock>
-
-            <p className="text-sm text-gray-600">
-              Add JitPack repository to your project-level <code className="bg-gray-100 px-1 rounded">settings.gradle.kts</code>:
+              Add repositories to your project-level <code className="bg-gray-100 px-1 rounded">settings.gradle.kts</code>:
             </p>
             <CodeBlock language="groovy">{`dependencyResolutionManagement {
     repositories {
@@ -153,6 +142,29 @@ function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; server
         maven { url = uri("https://jitpack.io") }
         maven { url = uri("https://artifacts.applovin.com/android") }
     }
+}`}</CodeBlock>
+
+            <p className="text-sm text-gray-600 mt-4">
+              Add the following to your app-level <code className="bg-gray-100 px-1 rounded">build.gradle</code> file:
+            </p>
+            <CodeBlock language="groovy">{`dependencies {
+    // AppLovin MAX SDK
+    implementation 'com.applovin:applovin-sdk:12.4.0'
+
+    // Starbidz SDK & Adapters (via JitPack)
+    implementation 'com.github.bugranalci:starbidzSDK:1.0.0'
+
+    // Google IMA (for video ads)
+    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.33.0'
+    implementation 'androidx.media:media:1.6.0'
+    implementation 'androidx.browser:browser:1.6.0'
+
+    // Unity Ads
+    implementation 'com.unity3d.ads:unity-ads:4.12.0'
+
+    // Fyber (Digital Turbine)
+    implementation 'com.fyber:marketplace-sdk:8.3.0'
+    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
 }`}</CodeBlock>
           </CardContent>
         </Card>
@@ -423,12 +435,38 @@ function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; server
             <CardDescription>Add the Starbidz SDK and AdMob adapter to your project</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Add JitPack repository to your project-level <code className="bg-gray-100 px-1 rounded">settings.gradle.kts</code>:
+            </p>
+            <CodeBlock language="groovy">{`dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
+}`}</CodeBlock>
+
+            <p className="text-sm text-gray-600 mt-4">
+              Add the following to your app-level <code className="bg-gray-100 px-1 rounded">build.gradle</code> file:
+            </p>
             <CodeBlock language="groovy">{`dependencies {
     // Google Mobile Ads SDK
     implementation 'com.google.android.gms:play-services-ads:23.0.0'
 
-    // Starbidz SDK (via JitPack)
+    // Starbidz SDK & Adapters (via JitPack)
     implementation 'com.github.bugranalci:starbidzSDK:1.0.0'
+
+    // Google IMA (for video ads)
+    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.33.0'
+    implementation 'androidx.media:media:1.6.0'
+    implementation 'androidx.browser:browser:1.6.0'
+
+    // Unity Ads
+    implementation 'com.unity3d.ads:unity-ads:4.12.0'
+
+    // Fyber (Digital Turbine)
+    implementation 'com.fyber:marketplace-sdk:8.3.0'
+    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
 }`}</CodeBlock>
           </CardContent>
         </Card>
@@ -575,12 +613,38 @@ RewardedAd.load(
             <CardDescription>Add the Starbidz SDK and LevelPlay adapter to your project</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Add JitPack repository to your project-level <code className="bg-gray-100 px-1 rounded">settings.gradle.kts</code>:
+            </p>
+            <CodeBlock language="groovy">{`dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
+}`}</CodeBlock>
+
+            <p className="text-sm text-gray-600 mt-4">
+              Add the following to your app-level <code className="bg-gray-100 px-1 rounded">build.gradle</code> file:
+            </p>
             <CodeBlock language="groovy">{`dependencies {
     // ironSource LevelPlay SDK
     implementation 'com.ironsource.sdk:mediationsdk:7.9.0'
 
-    // Starbidz SDK (via JitPack)
+    // Starbidz SDK & Adapters (via JitPack)
     implementation 'com.github.bugranalci:starbidzSDK:1.0.0'
+
+    // Google IMA (for video ads)
+    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.33.0'
+    implementation 'androidx.media:media:1.6.0'
+    implementation 'androidx.browser:browser:1.6.0'
+
+    // Unity Ads
+    implementation 'com.unity3d.ads:unity-ads:4.12.0'
+
+    // Fyber (Digital Turbine)
+    implementation 'com.fyber:marketplace-sdk:8.3.0'
+    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
 }`}</CodeBlock>
           </CardContent>
         </Card>
@@ -732,40 +796,40 @@ function IOSIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; serverUrl:
         <Card>
           <CardHeader>
             <CardTitle>Step 1: Add Dependencies</CardTitle>
-            <CardDescription>Add Starbidz SDK via Swift Package Manager</CardDescription>
+            <CardDescription>Add all required SDKs via Swift Package Manager</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">1</span>
-                <div>
-                  <p className="font-medium">In Xcode: File → Add Package Dependencies</p>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">2</span>
-                <div>
-                  <p className="font-medium">Enter the Starbidz SDK URL:</p>
-                  <code className="block bg-gray-100 p-2 rounded mt-1">https://github.com/bugranalci/starbidzSDK</code>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">3</span>
-                <div>
-                  <p className="font-medium">Select the libraries to add:</p>
-                  <div className="mt-2 bg-gray-50 p-3 rounded space-y-1 text-sm">
-                    <p><code>StarbidCore</code> - Required</p>
-                    <p><code>StarbidMAX</code> - For AppLovin MAX</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <p className="text-sm text-gray-600">
+              In Xcode: <strong>File → Add Package Dependencies</strong>, then add each of the following packages:
+            </p>
 
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                <strong>Note:</strong> Also add AppLovin MAX SDK via SPM from{' '}
-                <code className="bg-blue-100 px-1 rounded">https://github.com/AppLovin/AppLovin-MAX-Swift-Package</code>
-              </p>
+            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">Starbidz SDK & Adapters</p>
+                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/bugranalci/starbidzSDK</code>
+                <p className="text-xs text-gray-500">Select: StarbidCore, StarbidMAX</p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">AppLovin MAX SDK</p>
+                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/AppLovin/AppLovin-MAX-Swift-Package</code>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">Google IMA SDK</p>
+                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/googleads/swift-package-manager-google-interactive-media-ads-ios</code>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">Unity Ads SDK</p>
+                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/Unity-Technologies/unity-ads-ios</code>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">Fyber SDK</p>
+                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/nicklockwood/VerizonAdsStandardEdition</code>
+                <p className="text-xs text-gray-500">Or follow Fyber documentation for latest SPM URL</p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -1013,40 +1077,40 @@ class RewardedViewController: UIViewController, MARewardedAdDelegate {
         <Card>
           <CardHeader>
             <CardTitle>Step 1: Add Dependencies</CardTitle>
-            <CardDescription>Add Starbidz SDK via Swift Package Manager</CardDescription>
+            <CardDescription>Add all required SDKs via Swift Package Manager</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">1</span>
-                <div>
-                  <p className="font-medium">In Xcode: File → Add Package Dependencies</p>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">2</span>
-                <div>
-                  <p className="font-medium">Enter the Starbidz SDK URL:</p>
-                  <code className="block bg-gray-100 p-2 rounded mt-1">https://github.com/bugranalci/starbidzSDK</code>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">3</span>
-                <div>
-                  <p className="font-medium">Select the libraries to add:</p>
-                  <div className="mt-2 bg-gray-50 p-3 rounded space-y-1 text-sm">
-                    <p><code>StarbidCore</code> - Required</p>
-                    <p><code>StarbidAdMob</code> - For Google AdMob</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <p className="text-sm text-gray-600">
+              In Xcode: <strong>File → Add Package Dependencies</strong>, then add each of the following packages:
+            </p>
 
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                <strong>Note:</strong> Also add Google Mobile Ads SDK via SPM from{' '}
-                <code className="bg-blue-100 px-1 rounded">https://github.com/googleads/swift-package-manager-google-mobile-ads</code>
-              </p>
+            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">Starbidz SDK & Adapters</p>
+                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/bugranalci/starbidzSDK</code>
+                <p className="text-xs text-gray-500">Select: StarbidCore, StarbidAdMob</p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">Google Mobile Ads SDK</p>
+                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/googleads/swift-package-manager-google-mobile-ads</code>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">Google IMA SDK</p>
+                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/googleads/swift-package-manager-google-interactive-media-ads-ios</code>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">Unity Ads SDK</p>
+                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/Unity-Technologies/unity-ads-ios</code>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">Fyber SDK</p>
+                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/nicklockwood/VerizonAdsStandardEdition</code>
+                <p className="text-xs text-gray-500">Or follow Fyber documentation for latest SPM URL</p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -1166,40 +1230,41 @@ GADRewardedAd.load(withAdUnitID: "YOUR_AD_UNIT_ID", request: GADRequest()) { ad,
         <Card>
           <CardHeader>
             <CardTitle>Step 1: Add Dependencies</CardTitle>
-            <CardDescription>Add Starbidz SDK via Swift Package Manager</CardDescription>
+            <CardDescription>Add all required SDKs via Swift Package Manager</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">1</span>
-                <div>
-                  <p className="font-medium">In Xcode: File → Add Package Dependencies</p>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">2</span>
-                <div>
-                  <p className="font-medium">Enter the Starbidz SDK URL:</p>
-                  <code className="block bg-gray-100 p-2 rounded mt-1">https://github.com/bugranalci/starbidzSDK</code>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">3</span>
-                <div>
-                  <p className="font-medium">Select the libraries to add:</p>
-                  <div className="mt-2 bg-gray-50 p-3 rounded space-y-1 text-sm">
-                    <p><code>StarbidCore</code> - Required</p>
-                    <p><code>StarbidLevelPlay</code> - For ironSource LevelPlay</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <p className="text-sm text-gray-600">
+              In Xcode: <strong>File → Add Package Dependencies</strong>, then add each of the following packages:
+            </p>
 
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                <strong>Note:</strong> Also add ironSource SDK via SPM from{' '}
-                <code className="bg-blue-100 px-1 rounded">https://github.com/nicklockwood/LevelPlay</code> or follow ironSource documentation for the latest SPM URL.
-              </p>
+            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">Starbidz SDK & Adapters</p>
+                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/bugranalci/starbidzSDK</code>
+                <p className="text-xs text-gray-500">Select: StarbidCore, StarbidLevelPlay</p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">ironSource LevelPlay SDK</p>
+                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/nicklockwood/LevelPlay</code>
+                <p className="text-xs text-gray-500">Or follow ironSource documentation for latest SPM URL</p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">Google IMA SDK</p>
+                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/googleads/swift-package-manager-google-interactive-media-ads-ios</code>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">Unity Ads SDK</p>
+                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/Unity-Technologies/unity-ads-ios</code>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">Fyber SDK</p>
+                <code className="block bg-gray-100 p-2 rounded text-sm">https://github.com/nicklockwood/VerizonAdsStandardEdition</code>
+                <p className="text-xs text-gray-500">Or follow Fyber documentation for latest SPM URL</p>
+              </div>
             </div>
           </CardContent>
         </Card>
