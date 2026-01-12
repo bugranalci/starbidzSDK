@@ -139,20 +139,19 @@ function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; server
     // AppLovin MAX SDK
     implementation 'com.applovin:applovin-sdk:12.4.0'
 
-    // Starbidz SDK & MAX Adapter
-    implementation 'io.starbidz:starbidz-core:1.0.0'
-    implementation 'io.starbidz:starbidz-max:1.0.0'
+    // Starbidz SDK (via JitPack)
+    implementation 'com.github.bugranalci:starbidzSDK:1.0.0'
 }`}</CodeBlock>
 
             <p className="text-sm text-gray-600">
-              Add the Starbidz Maven repository to your project-level <code className="bg-gray-100 px-1 rounded">build.gradle</code>:
+              Add JitPack repository to your project-level <code className="bg-gray-100 px-1 rounded">settings.gradle.kts</code>:
             </p>
-            <CodeBlock language="groovy">{`allprojects {
+            <CodeBlock language="groovy">{`dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://artifacts.applovin.com/android' }
-        maven { url 'https://maven.starbidz.io/releases' }
+        maven { url = uri("https://jitpack.io") }
+        maven { url = uri("https://artifacts.applovin.com/android") }
     }
 }`}</CodeBlock>
           </CardContent>
@@ -428,9 +427,8 @@ function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; server
     // Google Mobile Ads SDK
     implementation 'com.google.android.gms:play-services-ads:23.0.0'
 
-    // Starbidz SDK & AdMob Adapter
-    implementation 'io.starbidz:starbidz-core:1.0.0'
-    implementation 'io.starbidz:starbidz-admob:1.0.0'
+    // Starbidz SDK (via JitPack)
+    implementation 'com.github.bugranalci:starbidzSDK:1.0.0'
 }`}</CodeBlock>
           </CardContent>
         </Card>
@@ -581,9 +579,8 @@ RewardedAd.load(
     // ironSource LevelPlay SDK
     implementation 'com.ironsource.sdk:mediationsdk:7.9.0'
 
-    // Starbidz SDK & LevelPlay Adapter
-    implementation 'io.starbidz:starbidz-core:1.0.0'
-    implementation 'io.starbidz:starbidz-levelplay:1.0.0'
+    // Starbidz SDK (via JitPack)
+    implementation 'com.github.bugranalci:starbidzSDK:1.0.0'
 }`}</CodeBlock>
           </CardContent>
         </Card>
@@ -755,10 +752,10 @@ end`}</CodeBlock>
             <p className="text-sm font-medium mt-4">Option B: Swift Package Manager</p>
             <CodeBlock language="swift">{`// Package.swift or via Xcode:
 // File → Add Package Dependencies
-// URL: https://github.com/starbidz/starbidz-ios-sdk
+// URL: https://github.com/bugranalci/starbidzSDK
 
 dependencies: [
-    .package(url: "https://github.com/starbidz/starbidz-ios-sdk", from: "1.0.0")
+    .package(url: "https://github.com/bugranalci/starbidzSDK", from: "1.0.0")
 ]`}</CodeBlock>
           </CardContent>
         </Card>
