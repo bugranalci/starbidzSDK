@@ -1,12 +1,20 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Starbidz</h1>
+        <Image
+          src="/starbidz-logos.svg"
+          alt="Starbidz"
+          width={800}
+          height={800}
+          className="mx-auto mb-4"
+          priority
+        />
         <p className="text-muted-foreground mb-8">
-          Ad Mediation SDK Dashboard
+          Starbidz SDK Dashboard For Publishers
         </p>
         <div className="flex gap-4 justify-center">
           <Link
