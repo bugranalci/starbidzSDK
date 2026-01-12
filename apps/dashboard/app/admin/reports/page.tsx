@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 
 interface Publisher {
   id: string
@@ -16,41 +16,56 @@ interface App {
   platform: string
 }
 
-// Mock data for admin reports
-const overviewStats = {
-  totalRevenue: 125430.50,
-  totalImpressions: 15234567,
-  totalRequests: 18456789,
-  avgFillRate: 82.5,
-  avgEcpm: 8.23,
-  clicks: 456789,
-  dau: 125000,
+interface DailyStats {
+  date: string
+  requests: number
+  responses: number
+  impressions: number
+  clicks: number
+  revenue: number
+  fill_rate: number
+  ctr: number
 }
 
-const demandSourceStats = [
-  { name: "Google AdMob", impressions: 5234567, revenue: 45230.50, ecpm: 8.64, fillRate: 85.2 },
-  { name: "Unity Ads", impressions: 3456789, revenue: 28450.30, ecpm: 8.23, fillRate: 78.5 },
-  { name: "Fyber", impressions: 2345678, revenue: 19870.40, ecpm: 8.47, fillRate: 82.1 },
-  { name: "OpenRTB DSPs", impressions: 4197533, revenue: 31879.30, ecpm: 7.59, fillRate: 84.3 },
-]
+interface DemandSourceStats {
+  demand_source: string
+  requests: number
+  wins: number
+  impressions: number
+  revenue: number
+  avg_bid: number
+  win_rate: number
+}
 
-const publisherStats = [
-  { name: "GameStudio Inc", apps: 5, impressions: 4234567, revenue: 35230.50, netRevenue: 28184.40, ecpm: 8.32, status: "active" },
-  { name: "AppMakers Ltd", apps: 3, impressions: 3456789, revenue: 28450.30, netRevenue: 22760.24, ecpm: 8.23, status: "active" },
-  { name: "MobileGames Co", apps: 8, impressions: 2345678, revenue: 19870.40, netRevenue: 15896.32, ecpm: 8.47, status: "active" },
-  { name: "CasualPlay", apps: 2, impressions: 1897533, revenue: 15879.30, netRevenue: 12703.44, ecpm: 8.36, status: "active" },
-  { name: "IndieDev Studio", apps: 1, impressions: 1300000, revenue: 10000.00, netRevenue: 8000.00, ecpm: 7.69, status: "inactive" },
-]
+interface CountryStats {
+  country: string
+  requests: number
+  impressions: number
+  revenue: number
+  fill_rate: number
+}
 
-const dailyData = [
-  { date: "Jan 1", revenue: 4200, impressions: 520000 },
-  { date: "Jan 2", revenue: 4500, impressions: 550000 },
-  { date: "Jan 3", revenue: 4100, impressions: 510000 },
-  { date: "Jan 4", revenue: 4800, impressions: 580000 },
-  { date: "Jan 5", revenue: 5200, impressions: 620000 },
-  { date: "Jan 6", revenue: 4900, impressions: 590000 },
-  { date: "Jan 7", revenue: 5100, impressions: 610000 },
-]
+interface FormatStats {
+  format: string
+  requests: number
+  impressions: number
+  revenue: number
+  avg_cpm: number
+}
+
+function Badge({ variant, children }: { variant: "success" | "destructive" | "outline" | "secondary"; children: React.ReactNode }) {
+  const variants = {
+    success: "bg-green-500/20 text-green-300 border border-green-500/30",
+    destructive: "bg-red-500/20 text-red-300 border border-red-500/30",
+    outline: "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30",
+    secondary: "bg-gray-500/20 text-gray-300 border border-gray-500/30",
+  }
+  return (
+    <span className={`px-2 py-0.5 rounded text-xs ${variants[variant]}`}>
+      {children}
+    </span>
+  )
+}
 
 const datePresets = [
   { label: 'Today', value: 'today' },
@@ -61,14 +76,36 @@ const datePresets = [
   { label: 'Custom', value: 'custom' },
 ]
 
-const breakdownOptions = [
-  { label: 'Date', value: 'date' },
-  { label: 'Publisher', value: 'publisher' },
-  { label: 'App', value: 'app' },
-  { label: 'Platform', value: 'platform' },
-  { label: 'Country', value: 'country' },
-  { label: 'Ad Format', value: 'ad_format' },
-]
+function getDateRange(preset: string): { start: string; end: string } {
+  const today = new Date()
+  const formatDate = (d: Date) => d.toISOString().split('T')[0]
+
+  switch (preset) {
+    case 'today':
+      return { start: formatDate(today), end: formatDate(today) }
+    case 'yesterday': {
+      const yesterday = new Date(today)
+      yesterday.setDate(yesterday.getDate() - 1)
+      return { start: formatDate(yesterday), end: formatDate(yesterday) }
+    }
+    case 'last_7_days': {
+      const start = new Date(today)
+      start.setDate(start.getDate() - 7)
+      return { start: formatDate(start), end: formatDate(today) }
+    }
+    case 'last_30_days': {
+      const start = new Date(today)
+      start.setDate(start.getDate() - 30)
+      return { start: formatDate(start), end: formatDate(today) }
+    }
+    case 'this_month': {
+      const start = new Date(today.getFullYear(), today.getMonth(), 1)
+      return { start: formatDate(start), end: formatDate(today) }
+    }
+    default:
+      return { start: '2025-01-01', end: formatDate(today) }
+  }
+}
 
 export default function AdminReportsPage() {
   const [dateRange, setDateRange] = useState("last_7_days")
@@ -77,13 +114,68 @@ export default function AdminReportsPage() {
   const [apps, setApps] = useState<App[]>([])
   const [selectedPublisher, setSelectedPublisher] = useState("")
   const [selectedApp, setSelectedApp] = useState("")
-  const [selectedBreakdown, setSelectedBreakdown] = useState("date")
   const [customStartDate, setCustomStartDate] = useState("")
   const [customEndDate, setCustomEndDate] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Analytics data
+  const [dailyStats, setDailyStats] = useState<DailyStats[]>([])
+  const [demandStats, setDemandStats] = useState<DemandSourceStats[]>([])
+  const [countryStats, setCountryStats] = useState<CountryStats[]>([])
+  const [formatStats, setFormatStats] = useState<FormatStats[]>([])
+
+  const fetchAnalytics = useCallback(async () => {
+    setIsLoading(true)
+    const { start, end } = dateRange === 'custom'
+      ? { start: customStartDate, end: customEndDate }
+      : getDateRange(dateRange)
+
+    if (!start || !end) {
+      setIsLoading(false)
+      return
+    }
+
+    const baseParams = new URLSearchParams({
+      start_date: start,
+      end_date: end,
+    })
+
+    if (selectedPublisher) baseParams.set('publisher_id', selectedPublisher)
+    if (selectedApp) baseParams.set('app_key', selectedApp)
+
+    try {
+      const [dailyRes, demandRes, countryRes, formatRes] = await Promise.all([
+        fetch(`/api/analytics?type=daily&${baseParams}`),
+        fetch(`/api/analytics?type=demand_sources&${baseParams}`),
+        fetch(`/api/analytics?type=countries&${baseParams}`),
+        fetch(`/api/analytics?type=formats&${baseParams}`),
+      ])
+
+      const [daily, demand, country, format] = await Promise.all([
+        dailyRes.json(),
+        demandRes.json(),
+        countryRes.json(),
+        formatRes.json(),
+      ])
+
+      setDailyStats(daily.data || [])
+      setDemandStats(demand.data || [])
+      setCountryStats(country.data || [])
+      setFormatStats(format.data || [])
+    } catch (error) {
+      console.error('Failed to fetch analytics:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [dateRange, customStartDate, customEndDate, selectedPublisher, selectedApp])
 
   useEffect(() => {
     fetchPublishers()
   }, [])
+
+  useEffect(() => {
+    fetchAnalytics()
+  }, [fetchAnalytics])
 
   useEffect(() => {
     if (selectedPublisher) {
@@ -115,13 +207,28 @@ export default function AdminReportsPage() {
     }
   }
 
+  // Calculate totals
+  const totals = dailyStats.reduce(
+    (acc, day) => ({
+      requests: acc.requests + day.requests,
+      impressions: acc.impressions + day.impressions,
+      clicks: acc.clicks + day.clicks,
+      revenue: acc.revenue + day.revenue,
+    }),
+    { requests: 0, impressions: 0, clicks: 0, revenue: 0 }
+  )
+
+  const avgFillRate = totals.requests > 0 ? (totals.impressions / totals.requests) * 100 : 0
+  const avgCtr = totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0
+  const avgEcpm = totals.impressions > 0 ? (totals.revenue / totals.impressions) * 1000 : 0
+
   const selectedPublisherData = publishers.find(p => p.id === selectedPublisher)
-  const maxRevenue = Math.max(...dailyData.map(d => d.revenue))
+  const maxRevenue = Math.max(...dailyStats.map(d => d.revenue), 1)
 
   const tabs = [
     { id: 'overview', label: 'Overview' },
     { id: 'demand', label: 'Demand Sources' },
-    { id: 'publishers', label: 'Publishers' },
+    { id: 'countries', label: 'Countries' },
     { id: 'formats', label: 'Ad Formats' },
   ]
 
@@ -131,14 +238,14 @@ export default function AdminReportsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Reports</h1>
-          <p className="text-gray-400">Platform-wide analytics and reporting</p>
+          <p className="text-gray-400">Platform-wide analytics powered by Tinybird</p>
         </div>
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg border border-white/20 transition-colors text-sm">
-            Export CSV
-          </button>
-          <button className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg border border-white/20 transition-colors text-sm">
-            Export PDF
+          <button
+            onClick={fetchAnalytics}
+            className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg transition-colors text-sm"
+          >
+            Refresh Data
           </button>
         </div>
       </div>
@@ -146,7 +253,7 @@ export default function AdminReportsPage() {
       {/* Filters Card */}
       <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-6">
         <h2 className="text-lg font-semibold text-white mb-4">Filters</h2>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Date Range */}
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-2">Date Range</label>
@@ -198,22 +305,6 @@ export default function AdminReportsPage() {
             </select>
           </div>
 
-          {/* Breakdown */}
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-2">Breakdown</label>
-            <select
-              value={selectedBreakdown}
-              onChange={(e) => setSelectedBreakdown(e.target.value)}
-              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:border-violet-500"
-            >
-              {breakdownOptions.map((opt) => (
-                <option key={opt.value} value={opt.value} className="bg-gray-900">
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Custom Date Range */}
           {dateRange === "custom" && (
             <div className="flex gap-2">
@@ -249,322 +340,257 @@ export default function AdminReportsPage() {
         )}
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-7">
-        <div className="bg-white/10 backdrop-blur-sm p-5 rounded-xl border border-white/20">
-          <p className="text-sm text-gray-400 mb-1">Revenue</p>
-          <p className="text-2xl font-bold text-emerald-400">${(overviewStats.totalRevenue / 1000).toFixed(1)}K</p>
-          <p className="text-xs text-emerald-400/70 mt-1">↑ +12.3%</p>
+      {/* Loading State */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500"></div>
+          <span className="ml-3 text-gray-400">Loading analytics...</span>
         </div>
-        <div className="bg-white/10 backdrop-blur-sm p-5 rounded-xl border border-white/20">
-          <p className="text-sm text-gray-400 mb-1">Impressions</p>
-          <p className="text-2xl font-bold text-blue-400">{(overviewStats.totalImpressions / 1000000).toFixed(1)}M</p>
-          <p className="text-xs text-blue-400/70 mt-1">↑ +8.7%</p>
-        </div>
-        <div className="bg-white/10 backdrop-blur-sm p-5 rounded-xl border border-white/20">
-          <p className="text-sm text-gray-400 mb-1">eCPM</p>
-          <p className="text-2xl font-bold text-violet-400">${overviewStats.avgEcpm}</p>
-          <p className="text-xs text-violet-400/70 mt-1">↑ +3.2%</p>
-        </div>
-        <div className="bg-white/10 backdrop-blur-sm p-5 rounded-xl border border-white/20">
-          <p className="text-sm text-gray-400 mb-1">Fill Rate</p>
-          <p className="text-2xl font-bold text-amber-400">{overviewStats.avgFillRate}%</p>
-          <p className="text-xs text-red-400/70 mt-1">↓ -0.5%</p>
-        </div>
-        <div className="bg-white/10 backdrop-blur-sm p-5 rounded-xl border border-white/20">
-          <p className="text-sm text-gray-400 mb-1">Requests</p>
-          <p className="text-2xl font-bold text-cyan-400">{(overviewStats.totalRequests / 1000000).toFixed(1)}M</p>
-          <p className="text-xs text-cyan-400/70 mt-1">↑ +5.1%</p>
-        </div>
-        <div className="bg-white/10 backdrop-blur-sm p-5 rounded-xl border border-white/20">
-          <p className="text-sm text-gray-400 mb-1">Clicks</p>
-          <p className="text-2xl font-bold text-pink-400">{(overviewStats.clicks / 1000).toFixed(0)}K</p>
-          <p className="text-xs text-pink-400/70 mt-1">↑ +4.2%</p>
-        </div>
-        <div className="bg-white/10 backdrop-blur-sm p-5 rounded-xl border border-white/20">
-          <p className="text-sm text-gray-400 mb-1">DAU</p>
-          <p className="text-2xl font-bold text-teal-400">{(overviewStats.dau / 1000).toFixed(0)}K</p>
-          <p className="text-xs text-teal-400/70 mt-1">↑ +2.8%</p>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 overflow-hidden">
-        <div className="border-b border-white/10 px-4">
-          <div className="flex gap-1">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 text-sm font-medium transition-colors relative ${
-                  activeTab === tab.id
-                    ? 'text-white'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                {tab.label}
-                {activeTab === tab.id && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-violet-500" />
-                )}
-              </button>
-            ))}
+      ) : (
+        <>
+          {/* Summary Cards */}
+          <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-6">
+            <div className="bg-white/10 backdrop-blur-sm p-5 rounded-xl border border-white/20">
+              <p className="text-sm text-gray-400 mb-1">Revenue</p>
+              <p className="text-2xl font-bold text-emerald-400">${totals.revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm p-5 rounded-xl border border-white/20">
+              <p className="text-sm text-gray-400 mb-1">Impressions</p>
+              <p className="text-2xl font-bold text-blue-400">{totals.impressions.toLocaleString()}</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm p-5 rounded-xl border border-white/20">
+              <p className="text-sm text-gray-400 mb-1">eCPM</p>
+              <p className="text-2xl font-bold text-violet-400">${avgEcpm.toFixed(2)}</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm p-5 rounded-xl border border-white/20">
+              <p className="text-sm text-gray-400 mb-1">Fill Rate</p>
+              <p className="text-2xl font-bold text-amber-400">{avgFillRate.toFixed(1)}%</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm p-5 rounded-xl border border-white/20">
+              <p className="text-sm text-gray-400 mb-1">Requests</p>
+              <p className="text-2xl font-bold text-cyan-400">{totals.requests.toLocaleString()}</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm p-5 rounded-xl border border-white/20">
+              <p className="text-sm text-gray-400 mb-1">CTR</p>
+              <p className="text-2xl font-bold text-pink-400">{avgCtr.toFixed(2)}%</p>
+            </div>
           </div>
-        </div>
 
-        <div className="p-6">
-          {/* Overview Tab */}
-          {activeTab === 'overview' && (
-            <div className="space-y-6">
-              {/* Revenue Chart */}
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Revenue Trend</h3>
-                <div className="h-64 flex items-end gap-2">
-                  {dailyData.map((day, i) => (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                      <div
-                        className="w-full bg-gradient-to-t from-violet-600 to-violet-400 rounded-t-sm transition-all hover:from-violet-500 hover:to-violet-300"
-                        style={{ height: `${(day.revenue / maxRevenue) * 200}px` }}
-                        title={`$${day.revenue.toLocaleString()}`}
-                      />
-                      <span className="text-xs text-gray-400">{day.date}</span>
-                    </div>
+          {/* No Data State */}
+          {dailyStats.length === 0 && (
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-12 text-center">
+              <h3 className="text-lg font-medium text-white mb-2">No data available</h3>
+              <p className="text-gray-400">
+                No analytics data found for the selected date range. Data will appear here once ads start serving.
+              </p>
+            </div>
+          )}
+
+          {/* Tabs */}
+          {dailyStats.length > 0 && (
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 overflow-hidden">
+              <div className="border-b border-white/10 px-4">
+                <div className="flex gap-1">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`px-4 py-3 text-sm font-medium transition-colors relative ${
+                        activeTab === tab.id
+                          ? 'text-white'
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      {tab.label}
+                      {activeTab === tab.id && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-violet-500" />
+                      )}
+                    </button>
                   ))}
                 </div>
               </div>
 
-              {/* Platform & Format Split */}
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">Revenue by Platform</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
-                      <div className="flex items-center gap-3">
-                        <span className="w-3 h-3 rounded-full bg-blue-500" />
-                        <span className="text-white">iOS</span>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-white">$68,986</p>
-                        <p className="text-xs text-gray-400">55%</p>
+              <div className="p-6">
+                {/* Overview Tab */}
+                {activeTab === 'overview' && (
+                  <div className="space-y-6">
+                    {/* Revenue Chart */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-4">Revenue Trend</h3>
+                      <div className="h-64 flex items-end gap-2">
+                        {dailyStats.slice(-14).map((day, i) => (
+                          <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                            <div
+                              className="w-full bg-gradient-to-t from-violet-600 to-violet-400 rounded-t-sm transition-all hover:from-violet-500 hover:to-violet-300"
+                              style={{ height: `${(day.revenue / maxRevenue) * 200}px` }}
+                              title={`$${day.revenue.toFixed(2)}`}
+                            />
+                            <span className="text-xs text-gray-400">{new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
-                      <div className="flex items-center gap-3">
-                        <span className="w-3 h-3 rounded-full bg-green-500" />
-                        <span className="text-white">Android</span>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-white">$56,444</p>
-                        <p className="text-xs text-gray-400">45%</p>
+
+                    {/* Daily Data Table */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-4">Daily Breakdown</h3>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full">
+                          <thead>
+                            <tr className="border-b border-white/10">
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Date</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Requests</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Impressions</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Clicks</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Revenue</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Fill Rate</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">CTR</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/10">
+                            {dailyStats.map((day) => (
+                              <tr key={day.date} className="hover:bg-white/5 transition-colors">
+                                <td className="px-4 py-4 font-medium text-white">{new Date(day.date).toLocaleDateString()}</td>
+                                <td className="px-4 py-4 text-right text-gray-300">{day.requests.toLocaleString()}</td>
+                                <td className="px-4 py-4 text-right text-gray-300">{day.impressions.toLocaleString()}</td>
+                                <td className="px-4 py-4 text-right text-gray-300">{day.clicks.toLocaleString()}</td>
+                                <td className="px-4 py-4 text-right text-emerald-400 font-medium">${day.revenue.toFixed(2)}</td>
+                                <td className="px-4 py-4 text-right text-gray-300">{day.fill_rate.toFixed(1)}%</td>
+                                <td className="px-4 py-4 text-right text-gray-300">{day.ctr.toFixed(2)}%</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                <div>
-                  <h3 className="text-lg font-semibold text-white mb-4">Revenue by Ad Format</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
-                      <div className="flex items-center gap-3">
-                        <span className="px-2 py-1 text-xs rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">REWARDED</span>
+                {/* Demand Sources Tab */}
+                {activeTab === 'demand' && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-4">Demand Source Performance</h3>
+                    {demandStats.length === 0 ? (
+                      <p className="text-gray-400 text-center py-8">No demand source data available</p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full">
+                          <thead>
+                            <tr className="border-b border-white/10">
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Source</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Requests</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Wins</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Impressions</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Revenue</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Avg Bid</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Win Rate</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/10">
+                            {demandStats.map((source) => (
+                              <tr key={source.demand_source} className="hover:bg-white/5 transition-colors">
+                                <td className="px-4 py-4 font-medium text-white">{source.demand_source}</td>
+                                <td className="px-4 py-4 text-right text-gray-300">{source.requests.toLocaleString()}</td>
+                                <td className="px-4 py-4 text-right text-gray-300">{source.wins.toLocaleString()}</td>
+                                <td className="px-4 py-4 text-right text-gray-300">{source.impressions.toLocaleString()}</td>
+                                <td className="px-4 py-4 text-right text-emerald-400 font-medium">${source.revenue.toFixed(2)}</td>
+                                <td className="px-4 py-4 text-right text-gray-300">${source.avg_bid.toFixed(2)}</td>
+                                <td className="px-4 py-4 text-right text-gray-300">{source.win_rate.toFixed(1)}%</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-white">$55,640</p>
-                        <p className="text-xs text-gray-400">$19.19 eCPM</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
-                      <div className="flex items-center gap-3">
-                        <span className="px-2 py-1 text-xs rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">INTERSTITIAL</span>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-white">$45,230</p>
-                        <p className="text-xs text-gray-400">$11.03 eCPM</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10">
-                      <div className="flex items-center gap-3">
-                        <span className="px-2 py-1 text-xs rounded bg-green-500/20 text-green-400 border border-green-500/30">BANNER</span>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-white">$24,560</p>
-                        <p className="text-xs text-gray-400">$3.00 eCPM</p>
-                      </div>
-                    </div>
+                    )}
                   </div>
-                </div>
-              </div>
-            </div>
-          )}
+                )}
 
-          {/* Demand Sources Tab */}
-          {activeTab === 'demand' && (
-            <div>
-              <h3 className="text-lg font-semibold text-white mb-4">Demand Source Performance</h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full">
-                  <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Source</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Impressions</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Revenue</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">eCPM</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Fill Rate</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Share</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/10">
-                    {demandSourceStats.map((source) => {
-                      const totalRevenue = demandSourceStats.reduce((acc, s) => acc + s.revenue, 0)
-                      const share = ((source.revenue / totalRevenue) * 100).toFixed(1)
-                      return (
-                        <tr key={source.name} className="hover:bg-white/5 transition-colors">
-                          <td className="px-4 py-4 font-medium text-white">{source.name}</td>
-                          <td className="px-4 py-4 text-right text-gray-300">{source.impressions.toLocaleString()}</td>
-                          <td className="px-4 py-4 text-right text-emerald-400 font-medium">${source.revenue.toLocaleString()}</td>
-                          <td className="px-4 py-4 text-right text-gray-300">${source.ecpm}</td>
-                          <td className="px-4 py-4 text-right text-gray-300">{source.fillRate}%</td>
-                          <td className="px-4 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <div className="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
-                                <div
-                                  className="h-full bg-violet-500 rounded-full"
-                                  style={{ width: `${share}%` }}
-                                />
+                {/* Countries Tab */}
+                {activeTab === 'countries' && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-4">Performance by Country</h3>
+                    {countryStats.length === 0 ? (
+                      <p className="text-gray-400 text-center py-8">No country data available</p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full">
+                          <thead>
+                            <tr className="border-b border-white/10">
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Country</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Requests</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Impressions</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Revenue</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Fill Rate</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/10">
+                            {countryStats.map((country) => (
+                              <tr key={country.country} className="hover:bg-white/5 transition-colors">
+                                <td className="px-4 py-4 font-medium text-white">{country.country}</td>
+                                <td className="px-4 py-4 text-right text-gray-300">{country.requests.toLocaleString()}</td>
+                                <td className="px-4 py-4 text-right text-gray-300">{country.impressions.toLocaleString()}</td>
+                                <td className="px-4 py-4 text-right text-emerald-400 font-medium">${country.revenue.toFixed(2)}</td>
+                                <td className="px-4 py-4 text-right text-gray-300">{country.fill_rate.toFixed(1)}%</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Ad Formats Tab */}
+                {activeTab === 'formats' && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-4">Performance by Ad Format</h3>
+                    {formatStats.length === 0 ? (
+                      <p className="text-gray-400 text-center py-8">No format data available</p>
+                    ) : (
+                      <div className="grid gap-4 md:grid-cols-3">
+                        {formatStats.map((format) => {
+                          const colorMap: Record<string, string> = {
+                            BANNER: 'green',
+                            INTERSTITIAL: 'blue',
+                            REWARDED: 'amber',
+                          }
+                          const color = colorMap[format.format] || 'gray'
+                          return (
+                            <div key={format.format} className="p-6 bg-white/5 rounded-xl border border-white/10">
+                              <div className="flex items-center justify-between mb-4">
+                                <h4 className="font-semibold text-white text-lg">{format.format}</h4>
+                                <Badge variant="secondary">{format.format}</Badge>
                               </div>
-                              <span className="text-gray-400 text-sm">{share}%</span>
+                              <div className="space-y-3">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-400">Requests</span>
+                                  <span className="font-medium text-white">{format.requests.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-400">Impressions</span>
+                                  <span className="font-medium text-white">{format.impressions.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-400">Revenue</span>
+                                  <span className="font-medium text-emerald-400">${format.revenue.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-400">eCPM</span>
+                                  <span className="font-medium text-violet-400">${format.avg_cpm.toFixed(2)}</span>
+                                </div>
+                              </div>
                             </div>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                  <tfoot>
-                    <tr className="border-t border-white/20 bg-white/5">
-                      <td className="px-4 py-3 font-bold text-white">Total</td>
-                      <td className="px-4 py-3 text-right font-bold text-white">
-                        {demandSourceStats.reduce((acc, s) => acc + s.impressions, 0).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-emerald-400">
-                        ${demandSourceStats.reduce((acc, s) => acc + s.revenue, 0).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-white">
-                        ${(demandSourceStats.reduce((acc, s) => acc + s.revenue, 0) / demandSourceStats.reduce((acc, s) => acc + s.impressions, 0) * 1000).toFixed(2)}
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-white">
-                        {(demandSourceStats.reduce((acc, s) => acc + s.fillRate, 0) / demandSourceStats.length).toFixed(1)}%
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-white">100%</td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* Publishers Tab */}
-          {activeTab === 'publishers' && (
-            <div>
-              <h3 className="text-lg font-semibold text-white mb-4">Publisher Performance</h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full">
-                  <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Publisher</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Apps</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Impressions</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Gross Revenue</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Net Revenue</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">eCPM</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/10">
-                    {publisherStats.map((pub) => (
-                      <tr key={pub.name} className="hover:bg-white/5 transition-colors">
-                        <td className="px-4 py-4 font-medium text-white">{pub.name}</td>
-                        <td className="px-4 py-4 text-right text-gray-300">{pub.apps}</td>
-                        <td className="px-4 py-4 text-right text-gray-300">{pub.impressions.toLocaleString()}</td>
-                        <td className="px-4 py-4 text-right text-gray-300">${pub.revenue.toLocaleString()}</td>
-                        <td className="px-4 py-4 text-right text-emerald-400 font-medium">${pub.netRevenue.toLocaleString()}</td>
-                        <td className="px-4 py-4 text-right text-gray-300">${pub.ecpm}</td>
-                        <td className="px-4 py-4 text-center">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            pub.status === 'active'
-                              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                              : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
-                          }`}>
-                            {pub.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="border-t border-white/20 bg-white/5">
-                      <td className="px-4 py-3 font-bold text-white">Total</td>
-                      <td className="px-4 py-3 text-right font-bold text-white">
-                        {publisherStats.reduce((acc, p) => acc + p.apps, 0)}
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-white">
-                        {publisherStats.reduce((acc, p) => acc + p.impressions, 0).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-white">
-                        ${publisherStats.reduce((acc, p) => acc + p.revenue, 0).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-emerald-400">
-                        ${publisherStats.reduce((acc, p) => acc + p.netRevenue, 0).toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3" />
-                      <td className="px-4 py-3" />
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* Ad Formats Tab */}
-          {activeTab === 'formats' && (
-            <div>
-              <h3 className="text-lg font-semibold text-white mb-4">Performance by Ad Format</h3>
-              <div className="grid gap-4 md:grid-cols-3">
-                {[
-                  { name: 'Banner', impressions: '8.2M', revenue: '$24,560', ecpm: '$3.00', fill: '92%', color: 'green' },
-                  { name: 'Interstitial', impressions: '4.1M', revenue: '$45,230', ecpm: '$11.03', fill: '85%', color: 'blue' },
-                  { name: 'Rewarded', impressions: '2.9M', revenue: '$55,640', ecpm: '$19.19', fill: '78%', color: 'amber' },
-                ].map((format) => (
-                  <div key={format.name} className="p-6 bg-white/5 rounded-xl border border-white/10">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="font-semibold text-white text-lg">{format.name}</h4>
-                      <span className={`px-2 py-1 text-xs rounded bg-${format.color}-500/20 text-${format.color}-400 border border-${format.color}-500/30`}>
-                        {format.name.toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Impressions</span>
-                        <span className="font-medium text-white">{format.impressions}</span>
+                          )
+                        })}
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Revenue</span>
-                        <span className="font-medium text-emerald-400">{format.revenue}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">eCPM</span>
-                        <span className="font-medium text-violet-400">{format.ecpm}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Fill Rate</span>
-                        <span className="font-medium text-white">{format.fill}</span>
-                      </div>
-                    </div>
+                    )}
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
-        </div>
-      </div>
+        </>
+      )}
     </div>
   )
 }

@@ -57,11 +57,11 @@ export default async function PublisherLayout({
             <div className="flex items-center">
               <Link href="/dashboard" className="flex items-center">
                 <Image
-                  src="/starbidz-logo.svg"
+                  src="/starbidz-logos.svg"
                   alt="Starbidz"
-                  width={140}
-                  height={32}
-                  className="h-8 w-auto"
+                  width={144}
+                  height={144}
+                  className="h-14 w-14"
                   priority
                 />
               </Link>
