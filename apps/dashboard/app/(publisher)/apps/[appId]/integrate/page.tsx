@@ -141,13 +141,12 @@ function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; server
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
         maven { url = uri("https://artifacts.applovin.com/android") }
+        maven { url = uri("https://unity3ddist.jfrog.io/artifactory/unity-mediation-mvn-prod-local/") }
+        maven { url = uri("https://fyber.jfrog.io/artifactory/fyber-marketplace") }
     }
-}`}</CodeBlock>
+}
 
-            <p className="text-sm text-gray-600 mt-4">
-              Add the following to your app-level <code className="bg-gray-100 px-1 rounded">build.gradle</code> file:
-            </p>
-            <CodeBlock language="groovy">{`dependencies {
+dependencies {
     // AppLovin MAX SDK
     implementation 'com.applovin:applovin-sdk:12.4.0'
 
@@ -443,13 +442,12 @@ function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; server
         google()
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
+        maven { url = uri("https://unity3ddist.jfrog.io/artifactory/unity-mediation-mvn-prod-local/") }
+        maven { url = uri("https://fyber.jfrog.io/artifactory/fyber-marketplace") }
     }
-}`}</CodeBlock>
+}
 
-            <p className="text-sm text-gray-600 mt-4">
-              Add the following to your app-level <code className="bg-gray-100 px-1 rounded">build.gradle</code> file:
-            </p>
-            <CodeBlock language="groovy">{`dependencies {
+dependencies {
     // Google Mobile Ads SDK
     implementation 'com.google.android.gms:play-services-ads:23.0.0'
 
@@ -621,13 +619,13 @@ RewardedAd.load(
         google()
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
+        maven { url = uri("https://android-sdk.is.com/") }
+        maven { url = uri("https://unity3ddist.jfrog.io/artifactory/unity-mediation-mvn-prod-local/") }
+        maven { url = uri("https://fyber.jfrog.io/artifactory/fyber-marketplace") }
     }
-}`}</CodeBlock>
+}
 
-            <p className="text-sm text-gray-600 mt-4">
-              Add the following to your app-level <code className="bg-gray-100 px-1 rounded">build.gradle</code> file:
-            </p>
-            <CodeBlock language="groovy">{`dependencies {
+dependencies {
     // ironSource LevelPlay SDK
     implementation 'com.ironsource.sdk:mediationsdk:7.9.0'
 
