@@ -8,8 +8,8 @@ export default function Home() {
         <Image
           src="/starbidz-logos.svg"
           alt="Starbidz"
-          width={800}
-          height={800}
+          width={400}
+          height={400}
           className="mx-auto mb-4"
           priority
         />
