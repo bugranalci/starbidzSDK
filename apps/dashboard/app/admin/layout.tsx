@@ -27,54 +27,8 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen relative">
-      {/* Premium S-wave stripe background */}
-      <div className="fixed inset-0 -z-10 overflow-hidden bg-black">
-        {/* S-shaped wave with horizontal stripes */}
-        <svg
-          className="absolute inset-0 w-full h-full"
-          viewBox="0 0 800 1000"
-          preserveAspectRatio="xMidYMid slice"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            {/* Gradient from purple to violet/pink */}
-            <linearGradient id="stripeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#7c3aed" />
-              <stop offset="50%" stopColor="#8b5cf6" />
-              <stop offset="100%" stopColor="#a855f7" />
-            </linearGradient>
-            {/* Clip path for S-wave shape */}
-            <clipPath id="sWaveClip">
-              <path d="
-                M 350 0
-                C 600 0, 700 150, 650 300
-                C 600 450, 350 500, 350 650
-                C 350 800, 500 900, 700 1000
-                L 800 1000
-                L 800 0
-                Z
-              " />
-            </clipPath>
-          </defs>
-          {/* Generate horizontal stripes inside S-wave */}
-          <g clipPath="url(#sWaveClip)">
-            {Array.from({ length: 100 }).map((_, i) => (
-              <rect
-                key={i}
-                x="0"
-                y={i * 10}
-                width="800"
-                height="5"
-                fill="url(#stripeGradient)"
-                opacity={0.6 + (i % 3) * 0.1}
-              />
-            ))}
-          </g>
-        </svg>
-        {/* Subtle ambient glow */}
-        <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[150px]" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px]" />
-      </div>
+      {/* Clean dark background */}
+      <div className="fixed inset-0 -z-10 bg-gray-950" />
 
       <nav className="bg-gray-900/80 backdrop-blur-sm text-white border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -84,9 +38,9 @@ export default async function AdminLayout({
                 <Image
                   src="/starbidz-logo.svg"
                   alt="Starbidz"
-                  width={140}
-                  height={32}
-                  className="h-8 w-auto"
+                  width={36}
+                  height={36}
+                  className="h-9 w-9"
                   priority
                 />
               </Link>

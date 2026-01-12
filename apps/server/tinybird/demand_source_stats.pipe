@@ -1,0 +1,28 @@
+DESCRIPTION >
+    Statistics by demand source
+
+NODE demand_source_stats_node
+SQL >
+    %
+    SELECT
+        demand_source,
+        countIf(event_type = 'BID_REQUEST') as requests,
+        countIf(event_type = 'WIN') as wins,
+        countIf(event_type = 'IMPRESSION') as impressions,
+        sumIf(win_price, event_type = 'IMPRESSION') as revenue,
+        avgIf(bid_price, event_type = 'BID_RESPONSE' AND bid_price > 0) as avg_bid,
+        if(requests > 0, wins / requests * 100, 0) as win_rate
+    FROM ad_events
+    WHERE toDate(timestamp) >= {{Date(start_date, '2025-01-01', description="Start date (YYYY-MM-DD)")}}
+      AND toDate(timestamp) <= {{Date(end_date, '2025-12-31', description="End date (YYYY-MM-DD)")}}
+      AND demand_source IS NOT NULL
+      {% if defined(app_key) and app_key != '' %}
+      AND app_key = {{String(app_key)}}
+      {% end %}
+      {% if defined(publisher_id) and publisher_id != '' %}
+      AND publisher_id = {{String(publisher_id)}}
+      {% end %}
+    GROUP BY demand_source
+    ORDER BY revenue DESC
+
+TYPE endpoint

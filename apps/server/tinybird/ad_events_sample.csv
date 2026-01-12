@@ -1,0 +1,12 @@
+timestamp,event_type,placement_id,app_key,demand_source,bid_price,net_price,win_price,margin,publisher_id,country,device_type,os,os_version,app_version,format,latency_ms,request_id
+2024-01-15 10:00:00,BID_REQUEST,pl_banner_1,app_demo_123,,,,,pub_001,US,mobile,ios,17.0,1.0.0,banner,45,req_001
+2024-01-15 10:00:00,BID_RESPONSE,pl_banner_1,app_demo_123,unity,1.50,1.20,,,pub_001,US,mobile,ios,17.0,1.0.0,banner,52,req_001
+2024-01-15 10:00:01,IMPRESSION,pl_banner_1,app_demo_123,unity,1.50,1.20,1.50,0.30,pub_001,US,mobile,ios,17.0,1.0.0,banner,,req_001
+2024-01-15 10:00:05,CLICK,pl_banner_1,app_demo_123,unity,,,,,pub_001,US,mobile,ios,17.0,1.0.0,banner,,req_001
+2024-01-15 10:01:00,BID_REQUEST,pl_inter_1,app_demo_123,,,,,pub_001,TR,mobile,android,14,2.0.0,interstitial,38,req_002
+2024-01-15 10:01:00,BID_RESPONSE,pl_inter_1,app_demo_123,fyber,2.80,2.24,,,pub_001,TR,mobile,android,14,2.0.0,interstitial,67,req_002
+2024-01-15 10:01:01,IMPRESSION,pl_inter_1,app_demo_123,fyber,2.80,2.24,2.80,0.56,pub_001,TR,mobile,android,14,2.0.0,interstitial,,req_002
+2024-01-15 10:02:00,BID_REQUEST,pl_rewarded_1,app_game_456,,,,,pub_002,DE,mobile,ios,16.5,3.1.0,rewarded,41,req_003
+2024-01-15 10:02:00,BID_RESPONSE,pl_rewarded_1,app_game_456,gam,5.20,4.16,,,pub_002,DE,mobile,ios,16.5,3.1.0,rewarded,89,req_003
+2024-01-15 10:02:01,IMPRESSION,pl_rewarded_1,app_game_456,gam,5.20,4.16,5.20,1.04,pub_002,DE,mobile,ios,16.5,3.1.0,rewarded,,req_003
+2024-01-15 10:02:30,COMPLETE,pl_rewarded_1,app_game_456,gam,,,,,pub_002,DE,mobile,ios,16.5,3.1.0,rewarded,,req_003

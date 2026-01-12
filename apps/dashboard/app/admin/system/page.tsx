@@ -1,13 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 // Mock system data
 const systemHealth = {
@@ -25,263 +18,208 @@ const recentLogs = [
   { timestamp: "2024-01-15 14:32:41", level: "INFO", message: "Cache invalidated for publisher: abc123", source: "redis" },
 ]
 
+function Badge({ variant, children }: { variant: "success" | "destructive" | "outline" | "secondary"; children: React.ReactNode }) {
+  const variants = {
+    success: "bg-green-500/20 text-green-300 border border-green-500/30",
+    destructive: "bg-red-500/20 text-red-300 border border-red-500/30",
+    outline: "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30",
+    secondary: "bg-gray-500/20 text-gray-300 border border-gray-500/30",
+  }
+  return (
+    <span className={`px-2 py-0.5 rounded text-xs ${variants[variant]}`}>
+      {children}
+    </span>
+  )
+}
+
 export default function SystemPage() {
   const [activeTab, setActiveTab] = useState("health")
+
+  const tabs = [
+    { id: "health", label: "Health Check" },
+    { id: "config", label: "Configuration" },
+    { id: "logs", label: "Logs" },
+    { id: "cache", label: "Cache" },
+  ]
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">System</h1>
-          <p className="text-muted-foreground">System health, configuration, and monitoring</p>
+          <h1 className="text-3xl font-bold text-white">System</h1>
+          <p className="text-gray-400">System health, configuration, and monitoring</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">Refresh Status</Button>
-          <Button variant="outline">View Full Logs</Button>
+          <button className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 text-white text-sm hover:bg-white/20 transition-colors">
+            Refresh Status
+          </button>
+          <button className="px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 text-white text-sm hover:bg-white/20 transition-colors">
+            View Full Logs
+          </button>
         </div>
       </div>
 
+      {/* Status Cards - Publishers style */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Bid Server</CardDescription>
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-xl">Healthy</CardTitle>
-              <Badge variant="success">Online</Badge>
+        {[
+          { label: 'Bid Server', value: systemHealth.bidServer.latency, status: 'Online', subtext: `Uptime: ${systemHealth.bidServer.uptime}` },
+          { label: 'Database', value: `${systemHealth.database.connections}/${systemHealth.database.poolSize}`, status: 'Connected', subtext: 'Pool connections' },
+          { label: 'Redis Cache', value: systemHealth.redis.hitRate, status: 'Active', subtext: `Memory: ${systemHealth.redis.memory}` },
+          { label: 'Workers', value: systemHealth.workers.active.toString(), status: 'Running', subtext: `Queue: ${systemHealth.workers.queue}` },
+        ].map((stat) => (
+          <div key={stat.label} className="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-gray-400">{stat.label}</p>
+              <Badge variant="success">{stat.status}</Badge>
             </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Uptime: {systemHealth.bidServer.uptime} | Latency: {systemHealth.bidServer.latency}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Database</CardDescription>
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-xl">Healthy</CardTitle>
-              <Badge variant="success">Connected</Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Connections: {systemHealth.database.connections}/{systemHealth.database.poolSize}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Redis Cache</CardDescription>
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-xl">Healthy</CardTitle>
-              <Badge variant="success">Active</Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Memory: {systemHealth.redis.memory} | Hit Rate: {systemHealth.redis.hitRate}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Background Workers</CardDescription>
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-xl">Healthy</CardTitle>
-              <Badge variant="success">Running</Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Active: {systemHealth.workers.active} | Queue: {systemHealth.workers.queue}
-            </p>
-          </CardContent>
-        </Card>
+            <p className="text-3xl font-bold text-white">{stat.value}</p>
+            <p className="text-sm text-gray-400 mt-1">{stat.subtext}</p>
+          </div>
+        ))}
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="health">Health Check</TabsTrigger>
-          <TabsTrigger value="config">Configuration</TabsTrigger>
-          <TabsTrigger value="logs">Logs</TabsTrigger>
-          <TabsTrigger value="cache">Cache</TabsTrigger>
-        </TabsList>
+      {/* Tabs */}
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 overflow-hidden">
+        <div className="flex border-b border-white/10">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-6 py-3 text-sm font-medium transition-colors ${
+                activeTab === tab.id
+                  ? "text-white bg-white/10 border-b-2 border-violet-500"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-        <TabsContent value="health" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Service Health</CardTitle>
-              <CardDescription>Detailed health status of all services</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Response Time</TableHead>
-                    <TableHead>Last Check</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">Bid Server (Elysia)</TableCell>
-                    <TableCell><Badge variant="success">Healthy</Badge></TableCell>
-                    <TableCell>45ms</TableCell>
-                    <TableCell>Just now</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Restart</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">PostgreSQL Database</TableCell>
-                    <TableCell><Badge variant="success">Healthy</Badge></TableCell>
-                    <TableCell>12ms</TableCell>
-                    <TableCell>Just now</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Details</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Redis Cache</TableCell>
-                    <TableCell><Badge variant="success">Healthy</Badge></TableCell>
-                    <TableCell>2ms</TableCell>
-                    <TableCell>Just now</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Flush</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Google Ad Manager API</TableCell>
-                    <TableCell><Badge variant="success">Healthy</Badge></TableCell>
-                    <TableCell>234ms</TableCell>
-                    <TableCell>2 min ago</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Test</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">OpenRTB Connectors</TableCell>
-                    <TableCell><Badge variant="success">Healthy</Badge></TableCell>
-                    <TableCell>156ms avg</TableCell>
-                    <TableCell>Just now</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">Details</Button>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        <div className="p-6">
+          {activeTab === "health" && (
+            <div className="space-y-4">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-white">Service Health</h3>
+                <p className="text-sm text-gray-400">Detailed health status of all services</p>
+              </div>
+              <table className="min-w-full divide-y divide-white/10">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Service</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Response Time</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Last Check</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
+                  {[
+                    { name: "Bid Server (Elysia)", time: "45ms", action: "Restart" },
+                    { name: "PostgreSQL Database", time: "12ms", action: "Details" },
+                    { name: "Redis Cache", time: "2ms", action: "Flush" },
+                    { name: "Google Ad Manager API", time: "234ms", action: "Test" },
+                    { name: "OpenRTB Connectors", time: "156ms avg", action: "Details" },
+                  ].map((service, i) => (
+                    <tr key={i} className="hover:bg-white/5 transition-colors">
+                      <td className="px-4 py-3 text-white font-medium">{service.name}</td>
+                      <td className="px-4 py-3"><Badge variant="success">Healthy</Badge></td>
+                      <td className="px-4 py-3 text-gray-300">{service.time}</td>
+                      <td className="px-4 py-3 text-gray-300">{i < 3 ? "Just now" : "2 min ago"}</td>
+                      <td className="px-4 py-3 text-right">
+                        <button className="text-violet-400 hover:text-violet-300 text-sm transition-colors">
+                          {service.action}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-        <TabsContent value="config" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Bid Server Settings</CardTitle>
-                <CardDescription>Configure bid server parameters</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="defaultTimeout">Default Timeout (ms)</Label>
-                  <Input id="defaultTimeout" type="number" defaultValue="200" />
+          {activeTab === "config" && (
+            <div className="grid gap-6 md:grid-cols-2">
+              {[
+                {
+                  title: "Bid Server Settings",
+                  desc: "Configure bid server parameters",
+                  fields: [
+                    { label: "Default Timeout (ms)", value: "200", type: "number" },
+                    { label: "Max Concurrent Requests", value: "1000", type: "number" },
+                    { label: "Global Bid Floor ($)", value: "0.50", type: "number" },
+                  ],
+                },
+                {
+                  title: "Auction Settings",
+                  desc: "Configure auction behavior",
+                  fields: [
+                    { label: "Auction Type", value: "First Price", disabled: true },
+                    { label: "TMAX Override (ms)", value: "150", type: "number" },
+                    { label: "Default Currency", value: "USD" },
+                  ],
+                },
+                {
+                  title: "Rate Limiting",
+                  desc: "Configure API rate limits",
+                  fields: [
+                    { label: "Requests per minute", value: "10000", type: "number" },
+                    { label: "Burst limit", value: "100", type: "number" },
+                  ],
+                },
+                {
+                  title: "Logging",
+                  desc: "Configure logging settings",
+                  fields: [
+                    { label: "Log Level", value: "INFO" },
+                    { label: "Log Retention (days)", value: "30", type: "number" },
+                  ],
+                },
+              ].map((card, i) => (
+                <div key={i} className="bg-white/5 rounded-xl border border-white/10 p-6">
+                  <h3 className="text-lg font-semibold text-white mb-1">{card.title}</h3>
+                  <p className="text-sm text-gray-400 mb-4">{card.desc}</p>
+                  <div className="space-y-4">
+                    {card.fields.map((field, j) => (
+                      <div key={j}>
+                        <label className="block text-sm text-gray-400 mb-1">{field.label}</label>
+                        <input
+                          type={field.type || "text"}
+                          defaultValue={field.value}
+                          disabled={field.disabled}
+                          className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
+                      </div>
+                    ))}
+                    <button className="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm hover:bg-violet-700 transition-colors">
+                      Save Settings
+                    </button>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="maxConcurrent">Max Concurrent Requests</Label>
-                  <Input id="maxConcurrent" type="number" defaultValue="1000" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bidFloor">Global Bid Floor ($)</Label>
-                  <Input id="bidFloor" type="number" step="0.01" defaultValue="0.50" />
-                </div>
-                <Button>Save Settings</Button>
-              </CardContent>
-            </Card>
+              ))}
+            </div>
+          )}
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Auction Settings</CardTitle>
-                <CardDescription>Configure auction behavior</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="auctionType">Auction Type</Label>
-                  <Input id="auctionType" defaultValue="First Price" disabled />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="tmax">TMAX Override (ms)</Label>
-                  <Input id="tmax" type="number" defaultValue="150" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="currency">Default Currency</Label>
-                  <Input id="currency" defaultValue="USD" />
-                </div>
-                <Button>Save Settings</Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Rate Limiting</CardTitle>
-                <CardDescription>Configure API rate limits</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="rateLimit">Requests per minute</Label>
-                  <Input id="rateLimit" type="number" defaultValue="10000" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="burstLimit">Burst limit</Label>
-                  <Input id="burstLimit" type="number" defaultValue="100" />
-                </div>
-                <Button>Save Settings</Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Logging</CardTitle>
-                <CardDescription>Configure logging settings</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="logLevel">Log Level</Label>
-                  <Input id="logLevel" defaultValue="INFO" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="retention">Log Retention (days)</Label>
-                  <Input id="retention" type="number" defaultValue="30" />
-                </div>
-                <Button>Save Settings</Button>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="logs" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Logs</CardTitle>
-              <CardDescription>Latest system log entries</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Timestamp</TableHead>
-                    <TableHead>Level</TableHead>
-                    <TableHead>Source</TableHead>
-                    <TableHead>Message</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+          {activeTab === "logs" && (
+            <div className="space-y-4">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-white">Recent Logs</h3>
+                <p className="text-sm text-gray-400">Latest system log entries</p>
+              </div>
+              <table className="min-w-full divide-y divide-white/10">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Timestamp</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Level</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Source</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Message</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/10">
                   {recentLogs.map((log, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="font-mono text-sm">{log.timestamp}</TableCell>
-                      <TableCell>
+                    <tr key={i} className="hover:bg-white/5 transition-colors">
+                      <td className="px-4 py-3 font-mono text-sm text-gray-300">{log.timestamp}</td>
+                      <td className="px-4 py-3">
                         <Badge
                           variant={
                             log.level === "ERROR"
@@ -293,100 +231,85 @@ export default function SystemPage() {
                         >
                           {log.level}
                         </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{log.source}</TableCell>
-                      <TableCell>{log.message}</TableCell>
-                    </TableRow>
+                      </td>
+                      <td className="px-4 py-3 text-gray-400">{log.source}</td>
+                      <td className="px-4 py-3 text-gray-300">{log.message}</td>
+                    </tr>
                   ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                </tbody>
+              </table>
+            </div>
+          )}
 
-        <TabsContent value="cache" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cache Management</CardTitle>
-              <CardDescription>Redis cache statistics and controls</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          {activeTab === "cache" && (
+            <div className="space-y-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-white">Cache Management</h3>
+                <p className="text-sm text-gray-400">Redis cache statistics and controls</p>
+              </div>
+
               <div className="grid gap-4 md:grid-cols-4">
-                <div className="p-4 rounded-lg bg-muted text-center">
-                  <p className="text-2xl font-bold">256 MB</p>
-                  <p className="text-sm text-muted-foreground">Memory Used</p>
-                </div>
-                <div className="p-4 rounded-lg bg-muted text-center">
-                  <p className="text-2xl font-bold">1.2M</p>
-                  <p className="text-sm text-muted-foreground">Total Keys</p>
-                </div>
-                <div className="p-4 rounded-lg bg-muted text-center">
-                  <p className="text-2xl font-bold">94.5%</p>
-                  <p className="text-sm text-muted-foreground">Hit Rate</p>
-                </div>
-                <div className="p-4 rounded-lg bg-muted text-center">
-                  <p className="text-2xl font-bold">2ms</p>
-                  <p className="text-sm text-muted-foreground">Avg Latency</p>
-                </div>
+                {[
+                  { value: "256 MB", label: "Memory Used" },
+                  { value: "1.2M", label: "Total Keys" },
+                  { value: "94.5%", label: "Hit Rate" },
+                  { value: "2ms", label: "Avg Latency" },
+                ].map((stat, i) => (
+                  <div key={i} className="bg-white/5 rounded-lg p-4 text-center">
+                    <p className="text-2xl font-bold text-white">{stat.value}</p>
+                    <p className="text-sm text-gray-400">{stat.label}</p>
+                  </div>
+                ))}
               </div>
 
               <div className="flex gap-2">
-                <Button variant="outline">Clear Publisher Cache</Button>
-                <Button variant="outline">Clear Bid Cache</Button>
-                <Button variant="destructive">Flush All</Button>
+                <button className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm hover:bg-white/20 transition-colors">
+                  Clear Publisher Cache
+                </button>
+                <button className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm hover:bg-white/20 transition-colors">
+                  Clear Bid Cache
+                </button>
+                <button className="px-4 py-2 bg-red-600/80 rounded-lg text-white text-sm hover:bg-red-600 transition-colors">
+                  Flush All
+                </button>
               </div>
 
               <div>
-                <h4 className="font-medium mb-2">Cache Keys by Type</h4>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Key Pattern</TableHead>
-                      <TableHead className="text-right">Count</TableHead>
-                      <TableHead className="text-right">Memory</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell className="font-mono">publisher:*</TableCell>
-                      <TableCell className="text-right">45,230</TableCell>
-                      <TableCell className="text-right">12 MB</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">Clear</Button>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-mono">bid:*</TableCell>
-                      <TableCell className="text-right">890,450</TableCell>
-                      <TableCell className="text-right">156 MB</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">Clear</Button>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-mono">dsp:*</TableCell>
-                      <TableCell className="text-right">12,340</TableCell>
-                      <TableCell className="text-right">8 MB</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">Clear</Button>
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-mono">session:*</TableCell>
-                      <TableCell className="text-right">234,560</TableCell>
-                      <TableCell className="text-right">80 MB</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">Clear</Button>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+                <h4 className="font-medium text-white mb-4">Cache Keys by Type</h4>
+                <table className="min-w-full divide-y divide-white/10">
+                  <thead>
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">Key Pattern</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Count</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Memory</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/10">
+                    {[
+                      { pattern: "publisher:*", count: "45,230", memory: "12 MB" },
+                      { pattern: "bid:*", count: "890,450", memory: "156 MB" },
+                      { pattern: "dsp:*", count: "12,340", memory: "8 MB" },
+                      { pattern: "session:*", count: "234,560", memory: "80 MB" },
+                    ].map((row, i) => (
+                      <tr key={i} className="hover:bg-white/5 transition-colors">
+                        <td className="px-4 py-3 font-mono text-gray-300">{row.pattern}</td>
+                        <td className="px-4 py-3 text-right text-gray-300">{row.count}</td>
+                        <td className="px-4 py-3 text-right text-gray-300">{row.memory}</td>
+                        <td className="px-4 py-3 text-right">
+                          <button className="text-violet-400 hover:text-violet-300 text-sm transition-colors">
+                            Clear
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

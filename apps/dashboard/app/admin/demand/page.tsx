@@ -19,86 +19,118 @@ export default async function DemandSourcesPage() {
   })
 
   const typeColors: Record<string, string> = {
-    GAM: 'bg-blue-100 text-blue-800',
-    UNITY: 'bg-purple-100 text-purple-800',
-    FYBER: 'bg-orange-100 text-orange-800',
-    ORTB: 'bg-green-100 text-green-800',
+    GAM: 'bg-blue-500/20 text-blue-300 border border-blue-500/30',
+    UNITY: 'bg-purple-500/20 text-purple-300 border border-purple-500/30',
+    FYBER: 'bg-orange-500/20 text-orange-300 border border-orange-500/30',
+    ORTB: 'bg-green-500/20 text-green-300 border border-green-500/30',
+  }
+
+  // Calculate stats
+  const totalSources = demandSources.length
+  const activeSources = demandSources.filter(s => s.isActive).length
+  const totalAdUnits = demandSources.reduce((acc, s) => acc + s._count.adUnits, 0)
+  const typeCount = {
+    GAM: demandSources.filter(s => s.type === 'GAM').length,
+    UNITY: demandSources.filter(s => s.type === 'UNITY').length,
+    FYBER: demandSources.filter(s => s.type === 'FYBER').length,
+    ORTB: demandSources.filter(s => s.type === 'ORTB').length,
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Demand Sources</h1>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Demand Sources</h1>
+          <p className="text-gray-400">Manage ad network integrations and DSP connections</p>
+        </div>
         <div className="flex gap-2">
           <Link
             href="/admin/demand/gam/new"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600/80 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors"
           >
             + GAM
           </Link>
           <Link
             href="/admin/demand/unity/new"
-            className="px-4 py-2 bg-purple-600 text-white rounded-md text-sm hover:bg-purple-700"
+            className="px-4 py-2 bg-purple-600/80 text-white rounded-lg text-sm hover:bg-purple-600 transition-colors"
           >
             + Unity
           </Link>
           <Link
             href="/admin/demand/fyber/new"
-            className="px-4 py-2 bg-orange-600 text-white rounded-md text-sm hover:bg-orange-700"
+            className="px-4 py-2 bg-orange-600/80 text-white rounded-lg text-sm hover:bg-orange-600 transition-colors"
           >
             + Fyber
           </Link>
           <Link
             href="/admin/demand/ortb/new"
-            className="px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700"
+            className="px-4 py-2 bg-green-600/80 text-white rounded-lg text-sm hover:bg-green-600 transition-colors"
           >
             + OpenRTB
           </Link>
         </div>
       </div>
 
+      <div className="grid gap-4 md:grid-cols-4">
+        {[
+          { label: 'Total Sources', value: totalSources },
+          { label: 'Active Sources', value: activeSources },
+          { label: 'Total Ad Units', value: totalAdUnits },
+          { label: 'Source Types', value: Object.values(typeCount).filter(v => v > 0).length },
+        ].map((stat) => (
+          <div key={stat.label} className="bg-white/10 backdrop-blur-sm p-6 rounded-xl border border-white/20">
+            <p className="text-sm text-gray-400">{stat.label}</p>
+            <p className="text-3xl font-bold text-white">{stat.value}</p>
+          </div>
+        ))}
+      </div>
+
       {demandSources.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <h3 className="text-lg font-medium mb-2">No demand sources configured</h3>
-          <p className="text-gray-500 mb-4">
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-12 text-center">
+          <h3 className="text-lg font-medium text-white mb-2">No demand sources configured</h3>
+          <p className="text-gray-400 mb-4">
             Add your first demand source to start receiving bids from ad networks.
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 overflow-hidden">
+          <div className="px-6 py-4 border-b border-white/10">
+            <h2 className="text-lg font-semibold text-white">All Demand Sources</h2>
+            <p className="text-sm text-gray-400">View and manage all connected ad networks</p>
+          </div>
+          <table className="min-w-full divide-y divide-white/10">
+            <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
                   Priority
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
                   Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
                   Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
                   Ad Units
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-white/10">
               {demandSources.map((source: DemandSourceFull) => (
-                <tr key={source.id} className="hover:bg-gray-50">
+                <tr key={source.id} className="hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4">
-                    <span className="font-mono text-sm">{source.priority}</span>
+                    <span className="font-mono text-sm text-gray-300">{source.priority}</span>
                   </td>
                   <td className="px-6 py-4">
                     <Link
                       href={`/admin/demand/${source.type.toLowerCase()}/${source.id}`}
-                      className="font-medium hover:underline"
+                      className="font-medium text-white hover:text-violet-400 transition-colors"
                     >
                       {source.name}
                     </Link>
@@ -108,15 +140,15 @@ export default async function DemandSourcesPage() {
                       {source.type}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm">
+                  <td className="px-6 py-4 text-sm text-gray-300">
                     {source.type === 'ORTB' ? 'N/A' : source._count.adUnits}
                   </td>
                   <td className="px-6 py-4">
                     <span
                       className={`px-2 py-1 rounded text-xs ${
                         source.isActive
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
+                          ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                          : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
                       }`}
                     >
                       {source.isActive ? 'Active' : 'Inactive'}
@@ -125,7 +157,7 @@ export default async function DemandSourcesPage() {
                   <td className="px-6 py-4">
                     <Link
                       href={`/admin/demand/${source.type.toLowerCase()}/${source.id}`}
-                      className="text-blue-600 hover:underline text-sm"
+                      className="text-violet-400 hover:text-violet-300 text-sm transition-colors"
                     >
                       Edit
                     </Link>
