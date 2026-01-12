@@ -4,20 +4,47 @@ import PackageDescription
 let package = Package(
     name: "Starbidz",
     platforms: [
-        .iOS(.v15)
+        .iOS(.v12)
     ],
     products: [
         .library(
-            name: "Starbidz",
-            targets: ["Starbidz"]
+            name: "StarbidCore",
+            targets: ["StarbidCore"]
+        ),
+        .library(
+            name: "StarbidMAX",
+            targets: ["StarbidMAX"]
+        ),
+        .library(
+            name: "StarbidAdMob",
+            targets: ["StarbidAdMob"]
+        ),
+        .library(
+            name: "StarbidLevelPlay",
+            targets: ["StarbidLevelPlay"]
         ),
     ],
     dependencies: [],
     targets: [
         .target(
-            name: "Starbidz",
+            name: "StarbidCore",
             dependencies: [],
-            path: "adapters/ios/Starbidz/Sources"
+            path: "adapters/ios/StarbidCore/Sources"
+        ),
+        .target(
+            name: "StarbidMAX",
+            dependencies: ["StarbidCore"],
+            path: "adapters/ios/StarbidMAX/Sources"
+        ),
+        .target(
+            name: "StarbidAdMob",
+            dependencies: ["StarbidCore"],
+            path: "adapters/ios/StarbidAdMob/Sources"
+        ),
+        .target(
+            name: "StarbidLevelPlay",
+            dependencies: ["StarbidCore"],
+            path: "adapters/ios/StarbidLevelPlay/Sources"
         ),
     ]
 )
