@@ -36,11 +36,11 @@ export default async function AdminLayout({
             <div className="flex items-center">
               <Link href="/admin/dashboard" className="flex items-center">
                 <Image
-                  src="/starbidz-logo.svg"
+                  src="/starbidz-logos.svg"
                   alt="Starbidz"
-                  width={200}
-                  height={200}
-                  className="h-12 w-12"
+                  width={144}
+                  height={144}
+                  className="h-14 w-14"
                   priority
                 />
               </Link>
