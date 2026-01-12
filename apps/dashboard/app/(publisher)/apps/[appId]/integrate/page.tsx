@@ -141,29 +141,24 @@ function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; server
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
         maven { url = uri("https://artifacts.applovin.com/android") }
-        maven { url = uri("https://unity3ddist.jfrog.io/artifactory/unity-mediation-mvn-prod-local/") }
-        maven { url = uri("https://fyber.jfrog.io/artifactory/fyber-marketplace") }
     }
 }
 
 dependencies {
     // AppLovin MAX SDK
-    implementation 'com.applovin:applovin-sdk:12.4.0'
+    implementation 'com.applovin:applovin-sdk:13.0.1'
 
     // Starbidz SDK & Adapters (via JitPack)
     implementation 'com.github.bugranalci:starbidzSDK:1.0.0'
 
     // Google IMA (for video ads)
-    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.33.0'
-    implementation 'androidx.media:media:1.6.0'
-    implementation 'androidx.browser:browser:1.6.0'
+    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
 
     // Unity Ads
-    implementation 'com.unity3d.ads:unity-ads:4.12.0'
+    implementation 'com.unity3d.ads:unity-ads:4.16.5'
 
-    // Fyber (Digital Turbine)
-    implementation 'com.fyber:marketplace-sdk:8.3.0'
-    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
+    // Fyber (Digital Turbine / DT Exchange)
+    implementation 'com.fyber:marketplace-sdk:8.4.0'
 }`}</CodeBlock>
           </CardContent>
         </Card>
@@ -442,29 +437,24 @@ dependencies {
         google()
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
-        maven { url = uri("https://unity3ddist.jfrog.io/artifactory/unity-mediation-mvn-prod-local/") }
-        maven { url = uri("https://fyber.jfrog.io/artifactory/fyber-marketplace") }
     }
 }
 
 dependencies {
     // Google Mobile Ads SDK
-    implementation 'com.google.android.gms:play-services-ads:23.0.0'
+    implementation 'com.google.android.gms:play-services-ads:23.6.0'
 
     // Starbidz SDK & Adapters (via JitPack)
     implementation 'com.github.bugranalci:starbidzSDK:1.0.0'
 
     // Google IMA (for video ads)
-    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.33.0'
-    implementation 'androidx.media:media:1.6.0'
-    implementation 'androidx.browser:browser:1.6.0'
+    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
 
     // Unity Ads
-    implementation 'com.unity3d.ads:unity-ads:4.12.0'
+    implementation 'com.unity3d.ads:unity-ads:4.16.5'
 
-    // Fyber (Digital Turbine)
-    implementation 'com.fyber:marketplace-sdk:8.3.0'
-    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
+    // Fyber (Digital Turbine / DT Exchange)
+    implementation 'com.fyber:marketplace-sdk:8.4.0'
 }`}</CodeBlock>
           </CardContent>
         </Card>
@@ -620,29 +610,24 @@ RewardedAd.load(
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
         maven { url = uri("https://android-sdk.is.com/") }
-        maven { url = uri("https://unity3ddist.jfrog.io/artifactory/unity-mediation-mvn-prod-local/") }
-        maven { url = uri("https://fyber.jfrog.io/artifactory/fyber-marketplace") }
     }
 }
 
 dependencies {
     // ironSource LevelPlay SDK
-    implementation 'com.ironsource.sdk:mediationsdk:7.9.0'
+    implementation 'com.ironsource.sdk:mediationsdk:8.7.0'
 
     // Starbidz SDK & Adapters (via JitPack)
     implementation 'com.github.bugranalci:starbidzSDK:1.0.0'
 
     // Google IMA (for video ads)
-    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.33.0'
-    implementation 'androidx.media:media:1.6.0'
-    implementation 'androidx.browser:browser:1.6.0'
+    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
 
     // Unity Ads
-    implementation 'com.unity3d.ads:unity-ads:4.12.0'
+    implementation 'com.unity3d.ads:unity-ads:4.16.5'
 
-    // Fyber (Digital Turbine)
-    implementation 'com.fyber:marketplace-sdk:8.3.0'
-    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
+    // Fyber (Digital Turbine / DT Exchange)
+    implementation 'com.fyber:marketplace-sdk:8.4.0'
 }`}</CodeBlock>
           </CardContent>
         </Card>
