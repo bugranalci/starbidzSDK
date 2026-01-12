@@ -732,31 +732,41 @@ function IOSIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; serverUrl:
         <Card>
           <CardHeader>
             <CardTitle>Step 1: Add Dependencies</CardTitle>
-            <CardDescription>Add Starbidz SDK via CocoaPods or Swift Package Manager</CardDescription>
+            <CardDescription>Add Starbidz SDK via Swift Package Manager</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm font-medium">Option A: CocoaPods</p>
-            <CodeBlock language="ruby">{`# Podfile
-platform :ios, '12.0'
-use_frameworks!
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">1</span>
+                <div>
+                  <p className="font-medium">In Xcode: File → Add Package Dependencies</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">2</span>
+                <div>
+                  <p className="font-medium">Enter the Starbidz SDK URL:</p>
+                  <code className="block bg-gray-100 p-2 rounded mt-1">https://github.com/bugranalci/starbidzSDK</code>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">3</span>
+                <div>
+                  <p className="font-medium">Select the libraries to add:</p>
+                  <div className="mt-2 bg-gray-50 p-3 rounded space-y-1 text-sm">
+                    <p><code>StarbidCore</code> - Required</p>
+                    <p><code>StarbidMAX</code> - For AppLovin MAX</p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-target 'YourApp' do
-  # AppLovin MAX
-  pod 'AppLovinSDK'
-
-  # Starbidz SDK & MAX Adapter
-  pod 'StarbidCore'
-  pod 'StarbidMAX'
-end`}</CodeBlock>
-
-            <p className="text-sm font-medium mt-4">Option B: Swift Package Manager</p>
-            <CodeBlock language="swift">{`// Package.swift or via Xcode:
-// File → Add Package Dependencies
-// URL: https://github.com/bugranalci/starbidzSDK
-
-dependencies: [
-    .package(url: "https://github.com/bugranalci/starbidzSDK", from: "1.0.0")
-]`}</CodeBlock>
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Note:</strong> Also add AppLovin MAX SDK via SPM from{' '}
+                <code className="bg-blue-100 px-1 rounded">https://github.com/AppLovin/AppLovin-MAX-Swift-Package</code>
+              </p>
+            </div>
           </CardContent>
         </Card>
 
@@ -1003,20 +1013,41 @@ class RewardedViewController: UIViewController, MARewardedAdDelegate {
         <Card>
           <CardHeader>
             <CardTitle>Step 1: Add Dependencies</CardTitle>
+            <CardDescription>Add Starbidz SDK via Swift Package Manager</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <CodeBlock language="ruby">{`# Podfile
-platform :ios, '12.0'
-use_frameworks!
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">1</span>
+                <div>
+                  <p className="font-medium">In Xcode: File → Add Package Dependencies</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">2</span>
+                <div>
+                  <p className="font-medium">Enter the Starbidz SDK URL:</p>
+                  <code className="block bg-gray-100 p-2 rounded mt-1">https://github.com/bugranalci/starbidzSDK</code>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">3</span>
+                <div>
+                  <p className="font-medium">Select the libraries to add:</p>
+                  <div className="mt-2 bg-gray-50 p-3 rounded space-y-1 text-sm">
+                    <p><code>StarbidCore</code> - Required</p>
+                    <p><code>StarbidAdMob</code> - For Google AdMob</p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-target 'YourApp' do
-  # Google Mobile Ads SDK
-  pod 'Google-Mobile-Ads-SDK'
-
-  # Starbidz SDK & AdMob Adapter
-  pod 'StarbidCore'
-  pod 'StarbidAdMob'
-end`}</CodeBlock>
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Note:</strong> Also add Google Mobile Ads SDK via SPM from{' '}
+                <code className="bg-blue-100 px-1 rounded">https://github.com/googleads/swift-package-manager-google-mobile-ads</code>
+              </p>
+            </div>
           </CardContent>
         </Card>
 
@@ -1135,20 +1166,41 @@ GADRewardedAd.load(withAdUnitID: "YOUR_AD_UNIT_ID", request: GADRequest()) { ad,
         <Card>
           <CardHeader>
             <CardTitle>Step 1: Add Dependencies</CardTitle>
+            <CardDescription>Add Starbidz SDK via Swift Package Manager</CardDescription>
           </CardHeader>
-          <CardContent>
-            <CodeBlock language="ruby">{`# Podfile
-platform :ios, '12.0'
-use_frameworks!
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">1</span>
+                <div>
+                  <p className="font-medium">In Xcode: File → Add Package Dependencies</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">2</span>
+                <div>
+                  <p className="font-medium">Enter the Starbidz SDK URL:</p>
+                  <code className="block bg-gray-100 p-2 rounded mt-1">https://github.com/bugranalci/starbidzSDK</code>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm">3</span>
+                <div>
+                  <p className="font-medium">Select the libraries to add:</p>
+                  <div className="mt-2 bg-gray-50 p-3 rounded space-y-1 text-sm">
+                    <p><code>StarbidCore</code> - Required</p>
+                    <p><code>StarbidLevelPlay</code> - For ironSource LevelPlay</p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-target 'YourApp' do
-  # ironSource LevelPlay SDK
-  pod 'IronSourceSDK'
-
-  # Starbidz SDK & LevelPlay Adapter
-  pod 'StarbidCore'
-  pod 'StarbidLevelPlay'
-end`}</CodeBlock>
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Note:</strong> Also add ironSource SDK via SPM from{' '}
+                <code className="bg-blue-100 px-1 rounded">https://github.com/nicklockwood/LevelPlay</code> or follow ironSource documentation for the latest SPM URL.
+              </p>
+            </div>
           </CardContent>
         </Card>
 
