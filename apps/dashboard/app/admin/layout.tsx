@@ -38,9 +38,9 @@ export default async function AdminLayout({
                 <Image
                   src="/starbidz-logos.svg"
                   alt="Starbidz"
-                  width={400}
-                  height={400}
-                  className="h-40 w-40"
+                  width={120}
+                  height={120}
+                  className="h-12 w-auto"
                   priority
                 />
               </Link>
