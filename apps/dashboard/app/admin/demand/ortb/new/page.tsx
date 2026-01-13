@@ -12,12 +12,19 @@ export default function NewOrtbPage() {
     setIsLoading(true)
 
     const formData = new FormData(e.currentTarget)
+
+    // Debug: Log all form fields
+    console.log('Form fields:')
+    for (const [key, value] of formData.entries()) {
+      console.log(`  ${key}: ${value}`)
+    }
+
     const data = {
       type: 'ORTB',
       name: formData.get('name'),
       priority: parseInt(formData.get('priority') as string) || 1,
       config: {
-        endpoint: formData.get('endpoint'),
+        endpoint: formData.get('endpoint') as string,
         seatId: formData.get('seatId') || null,
         authHeader: formData.get('authHeader') || null,
         authValue: formData.get('authValue') || null,
