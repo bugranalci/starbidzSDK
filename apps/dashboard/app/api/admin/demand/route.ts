@@ -35,12 +35,35 @@ const ortbConfigSchema = z.object({
   rewardedFloor: z.number().min(0).default(8.0),
 })
 
-const createDemandSourceSchema = z.object({
+const baseSchema = z.object({
   type: z.enum(['GAM', 'UNITY', 'FYBER', 'ORTB']),
   name: z.string().min(1).max(100),
   priority: z.number().min(1).default(1),
-  config: z.union([gamConfigSchema, unityConfigSchema, fyberConfigSchema, ortbConfigSchema]),
+  config: z.record(z.unknown()), // Validate config separately based on type
 })
+
+function validateDemandSource(data: unknown) {
+  const base = baseSchema.parse(data)
+
+  // Validate config based on type
+  let validatedConfig
+  switch (base.type) {
+    case 'GAM':
+      validatedConfig = gamConfigSchema.parse(base.config)
+      break
+    case 'UNITY':
+      validatedConfig = unityConfigSchema.parse(base.config)
+      break
+    case 'FYBER':
+      validatedConfig = fyberConfigSchema.parse(base.config)
+      break
+    case 'ORTB':
+      validatedConfig = ortbConfigSchema.parse(base.config)
+      break
+  }
+
+  return { ...base, config: validatedConfig }
+}
 
 async function requireAdmin() {
   const { userId } = await auth()
@@ -127,7 +150,7 @@ export async function POST(req: Request) {
 
     const body = await req.json()
     console.log('Received demand source data:', JSON.stringify(body, null, 2))
-    const data = createDemandSourceSchema.parse(body)
+    const data = validateDemandSource(body)
 
     // Encrypt sensitive credentials before storing (only ORTB)
     const encryptedConfig = encryptCredentials(data.type, data.config as Record<string, unknown>)
