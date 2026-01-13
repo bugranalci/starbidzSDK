@@ -125,6 +125,7 @@ export async function POST(req: Request) {
     await requireAdmin()
 
     const body = await req.json()
+    console.log('Received demand source data:', JSON.stringify(body, null, 2))
     const data = createDemandSourceSchema.parse(body)
 
     // Encrypt sensitive credentials before storing (only ORTB)
