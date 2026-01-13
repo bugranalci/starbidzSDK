@@ -160,6 +160,7 @@ model OrtbConfig {
   authHeader     String?
   authValue      String?      // Encrypted
   timeout        Int          @default(200)
+  qps            Int          @default(100) // Queries Per Second limit
 
   // Format-based configuration
   bannerEnabled       Boolean @default(true)

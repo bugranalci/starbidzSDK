@@ -50,3 +50,4 @@ adapters/ios/Pods
 *.xcworkspace
 *.xcuserdata
 DerivedData
+.build/

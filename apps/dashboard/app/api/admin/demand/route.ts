@@ -26,6 +26,7 @@ const ortbConfigSchema = z.object({
   authHeader: z.string().nullable().optional(),
   authValue: z.string().nullable().optional(),
   timeout: z.number().min(50).max(500).default(200),
+  qps: z.number().min(1).max(10000).default(100),
   bannerEnabled: z.boolean().default(true),
   bannerFloor: z.number().min(0).default(1.0),
   interstitialEnabled: z.boolean().default(true),

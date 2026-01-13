@@ -29,6 +29,7 @@ export default function NewOrtbPage() {
         authHeader: formData.get('authHeader') || null,
         authValue: formData.get('authValue') || null,
         timeout: parseInt(formData.get('timeout') as string) || 200,
+        qps: parseInt(formData.get('qps') as string) || 100,
         bannerEnabled: formData.get('bannerEnabled') === 'on',
         bannerFloor: parseFloat(formData.get('bannerFloor') as string) || 1.0,
         interstitialEnabled: formData.get('interstitialEnabled') === 'on',
@@ -92,7 +93,7 @@ export default function NewOrtbPage() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div>
             <label htmlFor="seatId" className="block text-sm font-medium mb-2">
               Seat ID (optional)
@@ -115,6 +116,20 @@ export default function NewOrtbPage() {
               defaultValue="200"
               min="50"
               max="500"
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+          <div>
+            <label htmlFor="qps" className="block text-sm font-medium mb-2">
+              QPS Limit
+            </label>
+            <input
+              id="qps"
+              name="qps"
+              type="number"
+              defaultValue="100"
+              min="1"
+              max="10000"
               className="w-full px-3 py-2 border rounded-md"
             />
           </div>
