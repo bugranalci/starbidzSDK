@@ -106,7 +106,8 @@ export async function PUT(req: Request) {
     return NextResponse.json({ success: true })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      const errorMessage = error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+      return NextResponse.json({ error: errorMessage }, { status: 400 })
     }
     if (error instanceof Error && error.message === 'Publisher not found') {
       return NextResponse.json({ error: 'Publisher not found' }, { status: 404 })

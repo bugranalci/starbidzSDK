@@ -60,7 +60,8 @@ export async function POST(
     return NextResponse.json(adUnit)
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      const errorMessage = error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+      return NextResponse.json({ error: errorMessage }, { status: 400 })
     }
     console.error('Create demand ad unit error:', error)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

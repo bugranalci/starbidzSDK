@@ -90,7 +90,8 @@ export async function PUT(
     return NextResponse.json(updated)
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      const errorMessage = error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+      return NextResponse.json({ error: errorMessage }, { status: 400 })
     }
     if (error instanceof Error && error.message === 'Admin access required') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

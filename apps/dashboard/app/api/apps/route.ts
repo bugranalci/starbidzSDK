@@ -52,7 +52,8 @@ export async function POST(req: Request) {
     return NextResponse.json(app)
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 })
+      const errorMessage = error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+      return NextResponse.json({ error: errorMessage }, { status: 400 })
     }
     console.error('Create app error:', error)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
