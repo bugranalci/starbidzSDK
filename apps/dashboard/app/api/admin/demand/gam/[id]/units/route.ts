@@ -14,14 +14,46 @@ async function isAdmin() {
   return user?.role === 'ADMIN'
 }
 
+// GAM ad unit path validation: /network_code/ad_unit_path
+const gamPathRegex = /^\/[\d,]+\/.+$/
+
 const createAdUnitSchema = z.object({
-  externalId: z.string().min(1),
+  name: z.string().min(1).max(100),
+  externalId: z.string().min(1).max(255).regex(gamPathRegex, {
+    message: 'Invalid GAM path format. Expected: /network_code/ad_unit_path',
+  }),
   format: z.enum(['BANNER', 'INTERSTITIAL', 'REWARDED']),
-  bidFloor: z.number().min(0),
+  bidFloor: z.number().min(0.01).max(999.99),
+  platform: z.enum(['ANDROID', 'IOS', 'BOTH']).default('BOTH'),
   width: z.number().nullable().optional(),
   height: z.number().nullable().optional(),
 })
 
+// GET - List ad units for a GAM source
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    if (!(await isAdmin())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id } = await params
+
+    const adUnits = await prisma.demandAdUnit.findMany({
+      where: { demandSourceId: id },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return NextResponse.json(adUnits)
+  } catch (error) {
+    console.error('List demand ad units error:', error)
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+  }
+}
+
+// POST - Create new ad unit
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -48,10 +80,11 @@ export async function POST(
     const adUnit = await prisma.demandAdUnit.create({
       data: {
         demandSourceId: id,
-        name: data.externalId, // Use externalId as name for now
+        name: data.name,
         externalId: data.externalId,
         format: data.format,
         bidFloor: data.bidFloor,
+        platform: data.platform,
         width: data.format === 'BANNER' ? data.width : null,
         height: data.format === 'BANNER' ? data.height : null,
       },

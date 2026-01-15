@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { DemandActions, AddAdUnitButton } from "@/components/admin/demand-actions"
+import { DemandActions, AddAdUnitButton, AdUnitActions } from "@/components/admin/demand-actions"
 import { Prisma } from '@prisma/client'
 
 type DemandAdUnitType = Prisma.DemandAdUnitGetPayload<{}>
@@ -122,9 +122,10 @@ export default async function GamDetailPage({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>External ID / Path</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>GAM Path</TableHead>
                 <TableHead>Format</TableHead>
-                <TableHead>Size</TableHead>
+                <TableHead>Platform</TableHead>
                 <TableHead>Floor Price</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -133,12 +134,15 @@ export default async function GamDetailPage({
             <TableBody>
               {source.adUnits.map((unit: DemandAdUnitType) => (
                 <TableRow key={unit.id}>
-                  <TableCell className="font-mono text-sm">{unit.externalId}</TableCell>
+                  <TableCell className="font-medium">{unit.name}</TableCell>
+                  <TableCell className="font-mono text-xs max-w-[200px] truncate" title={unit.externalId}>
+                    {unit.externalId}
+                  </TableCell>
                   <TableCell>
                     <Badge variant="outline">{unit.format}</Badge>
                   </TableCell>
                   <TableCell>
-                    {unit.width && unit.height ? `${unit.width}x${unit.height}` : "-"}
+                    <Badge variant="secondary">{unit.platform}</Badge>
                   </TableCell>
                   <TableCell>${unit.bidFloor.toFixed(2)}</TableCell>
                   <TableCell>
@@ -147,13 +151,18 @@ export default async function GamDetailPage({
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">Edit</Button>
+                    <AdUnitActions
+                      sourceId={source.id}
+                      sourceType="gam"
+                      unitId={unit.id}
+                      unitName={unit.name}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
               {source.adUnits.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center text-muted-foreground">
                     No ad units configured. Add your first ad unit to start receiving bids.
                   </TableCell>
                 </TableRow>

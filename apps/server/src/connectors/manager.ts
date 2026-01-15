@@ -78,7 +78,7 @@ class ConnectorManager {
     }
 
     try {
-      // Load all active demand sources with their configs
+      // Load all active demand sources with their configs and ad units
       const demandSources = await this.prisma.demandSource.findMany({
         where: { isActive: true },
         include: {
@@ -86,14 +86,31 @@ class ConnectorManager {
           unityConfig: true,
           fyberConfig: true,
           ortbConfig: true,
+          adUnits: {
+            where: { isActive: true },
+          },
         },
       })
 
       // Reset active connectors
       this.activeConnectors.clear()
 
-      // Group configs by type (simplified for client-side mediation)
-      const gamConfigs: Array<{ demandSourceId: string; networkCode: string | null }> = []
+      // Group configs by type
+      const gamConfigs: Array<{
+        demandSourceId: string
+        networkCode: string | null
+        adUnits: Array<{
+          id: string
+          name: string
+          externalId: string
+          format: string
+          bidFloor: number
+          platform: string
+          width: number | null
+          height: number | null
+          isActive: boolean
+        }>
+      }> = []
       const unityConfigs: Array<{
         demandSourceId: string
         gameIdAndroid: string
@@ -123,6 +140,17 @@ class ConnectorManager {
               gamConfigs.push({
                 demandSourceId: source.id,
                 networkCode: source.gamConfig.networkCode,
+                adUnits: source.adUnits.map(unit => ({
+                  id: unit.id,
+                  name: unit.name,
+                  externalId: unit.externalId,
+                  format: unit.format,
+                  bidFloor: unit.bidFloor,
+                  platform: unit.platform,
+                  width: unit.width,
+                  height: unit.height,
+                  isActive: unit.isActive,
+                })),
               })
               this.activeConnectors.add('gam')
             }
@@ -176,7 +204,8 @@ class ConnectorManager {
       // Load configs into each connector
       if (gamConfigs.length > 0) {
         await gamConnector.loadConfigs(gamConfigs)
-        console.log(`Loaded ${gamConfigs.length} GAM config(s)`)
+        const totalAdUnits = gamConfigs.reduce((sum, c) => sum + c.adUnits.length, 0)
+        console.log(`Loaded ${gamConfigs.length} GAM config(s) with ${totalAdUnits} ad unit(s)`)
       }
 
       if (unityConfigs.length > 0) {
