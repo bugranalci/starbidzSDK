@@ -115,8 +115,34 @@ class ConnectorManager {
         demandSourceId: string
         gameIdAndroid: string
         gameIdIos: string
+        adUnits: Array<{
+          id: string
+          name: string
+          externalId: string
+          format: string
+          bidFloor: number
+          platform: string
+          width: number | null
+          height: number | null
+          isActive: boolean
+        }>
       }> = []
-      const fyberConfigs: Array<{ demandSourceId: string; appIdAndroid: string; appIdIos: string }> = []
+      const fyberConfigs: Array<{
+        demandSourceId: string
+        appIdAndroid: string
+        appIdIos: string
+        adUnits: Array<{
+          id: string
+          name: string
+          externalId: string
+          format: string
+          bidFloor: number
+          platform: string
+          width: number | null
+          height: number | null
+          isActive: boolean
+        }>
+      }> = []
       const ortbConfigs: Array<{
         id: string
         name: string
@@ -162,6 +188,17 @@ class ConnectorManager {
                 demandSourceId: source.id,
                 gameIdAndroid: source.unityConfig.gameIdAndroid,
                 gameIdIos: source.unityConfig.gameIdIos,
+                adUnits: source.adUnits.map(unit => ({
+                  id: unit.id,
+                  name: unit.name,
+                  externalId: unit.externalId,
+                  format: unit.format,
+                  bidFloor: unit.bidFloor,
+                  platform: unit.platform,
+                  width: unit.width,
+                  height: unit.height,
+                  isActive: unit.isActive,
+                })),
               })
               this.activeConnectors.add('unity')
             }
@@ -173,6 +210,17 @@ class ConnectorManager {
                 demandSourceId: source.id,
                 appIdAndroid: source.fyberConfig.appIdAndroid,
                 appIdIos: source.fyberConfig.appIdIos,
+                adUnits: source.adUnits.map(unit => ({
+                  id: unit.id,
+                  name: unit.name,
+                  externalId: unit.externalId,
+                  format: unit.format,
+                  bidFloor: unit.bidFloor,
+                  platform: unit.platform,
+                  width: unit.width,
+                  height: unit.height,
+                  isActive: unit.isActive,
+                })),
               })
               this.activeConnectors.add('fyber')
             }
@@ -210,12 +258,14 @@ class ConnectorManager {
 
       if (unityConfigs.length > 0) {
         await unityConnector.loadConfigs(unityConfigs)
-        console.log(`Loaded ${unityConfigs.length} Unity config(s)`)
+        const totalUnityAdUnits = unityConfigs.reduce((sum, c) => sum + c.adUnits.length, 0)
+        console.log(`Loaded ${unityConfigs.length} Unity config(s) with ${totalUnityAdUnits} ad unit(s)`)
       }
 
       if (fyberConfigs.length > 0) {
         await fyberConnector.loadConfigs(fyberConfigs)
-        console.log(`Loaded ${fyberConfigs.length} Fyber config(s)`)
+        const totalFyberAdUnits = fyberConfigs.reduce((sum, c) => sum + c.adUnits.length, 0)
+        console.log(`Loaded ${fyberConfigs.length} Fyber config(s) with ${totalFyberAdUnits} ad unit(s)`)
       }
 
       if (ortbConfigs.length > 0) {

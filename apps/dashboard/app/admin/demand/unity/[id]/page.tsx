@@ -2,9 +2,9 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/db"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { DemandActions, AddAdUnitButton, AdUnitActions } from "@/components/admin/demand-actions"
 import { Prisma } from '@prisma/client'
 
 type DemandAdUnitType = Prisma.DemandAdUnitGetPayload<{}>
@@ -14,7 +14,9 @@ async function getUnitySource(id: string) {
     where: { id, type: "UNITY" },
     include: {
       unityConfig: true,
-      adUnits: true,
+      adUnits: {
+        orderBy: { createdAt: "desc" },
+      },
     },
   })
   return source
@@ -32,39 +34,35 @@ export default async function UnityDetailPage({
     notFound()
   }
 
-  const config = source.unityConfig
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <Link href="/demand/unity" className="text-muted-foreground hover:text-foreground">
-            ← Back to Unity Ads
-          </Link>
-          <h1 className="text-3xl font-bold mt-2">{source.name}</h1>
-          <p className="text-muted-foreground">Unity Ads Configuration</p>
+          <div className="flex items-center gap-2 mb-2">
+            <Link href="/admin/demand/unity" className="text-muted-foreground hover:text-foreground">
+              ← Back to Unity Ads
+            </Link>
+          </div>
+          <h1 className="text-3xl font-bold">{source.name}</h1>
+          <p className="text-muted-foreground">Unity Ads Account Details</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline">Edit</Button>
-          <Button variant="outline">Sync Placements</Button>
-          <Button variant="destructive">Delete</Button>
-        </div>
+        <DemandActions sourceId={source.id} sourceName={source.name} sourceType="unity" />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Account Configuration</CardTitle>
+            <CardTitle>Configuration</CardTitle>
             <CardDescription>Unity Ads account settings</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Game ID (Android)</span>
-              <code>{config?.gameIdAndroid || "-"}</code>
+              <code className="font-mono">{source.unityConfig?.gameIdAndroid || "-"}</code>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Game ID (iOS)</span>
-              <code>{config?.gameIdIos || "-"}</code>
+              <code className="font-mono">{source.unityConfig?.gameIdIos || "-"}</code>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Priority</span>
@@ -76,32 +74,38 @@ export default async function UnityDetailPage({
                 {source.isActive ? "Active" : "Inactive"}
               </Badge>
             </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Created</span>
+              <span>{source.createdAt.toLocaleDateString()}</span>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Performance Overview</CardTitle>
-            <CardDescription>Last 30 days metrics</CardDescription>
+            <CardTitle>Statistics</CardTitle>
+            <CardDescription>Performance metrics (last 30 days)</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 grid-cols-2">
-              <div className="text-center p-4 rounded-lg bg-muted">
-                <p className="text-2xl font-bold">{Math.floor(Math.random() * 100000).toLocaleString()}</p>
-                <p className="text-sm text-muted-foreground">Impressions</p>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-muted">
-                <p className="text-2xl font-bold">${(Math.random() * 1000 + 500).toFixed(2)}</p>
-                <p className="text-sm text-muted-foreground">Revenue</p>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-muted">
-                <p className="text-2xl font-bold">${(Math.random() * 15 + 5).toFixed(2)}</p>
-                <p className="text-sm text-muted-foreground">eCPM</p>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-muted">
-                <p className="text-2xl font-bold">{(Math.random() * 90 + 10).toFixed(1)}%</p>
-                <p className="text-sm text-muted-foreground">Fill Rate</p>
-              </div>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Bid Requests</span>
+              <span className="font-medium">{Math.floor(Math.random() * 100000).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Bid Responses</span>
+              <span className="font-medium">{Math.floor(Math.random() * 80000).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Win Rate</span>
+              <span className="font-medium">{(Math.random() * 30 + 10).toFixed(1)}%</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Avg. CPM</span>
+              <span className="font-medium">${(Math.random() * 8 + 4).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Revenue</span>
+              <span className="font-medium">${(Math.random() * 5000 + 1000).toFixed(2)}</span>
             </div>
           </CardContent>
         </Card>
@@ -109,16 +113,23 @@ export default async function UnityDetailPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Ad Units</CardTitle>
-          <CardDescription>Configured Unity ad placements</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Ad Units</CardTitle>
+              <CardDescription>Unity ad placements configured for this account</CardDescription>
+            </div>
+            <AddAdUnitButton sourceId={source.id} sourceType="unity" />
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Name</TableHead>
                 <TableHead>Placement ID</TableHead>
                 <TableHead>Format</TableHead>
                 <TableHead>Platform</TableHead>
+                <TableHead>Floor Price</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -126,9 +137,15 @@ export default async function UnityDetailPage({
             <TableBody>
               {source.adUnits.map((unit: DemandAdUnitType) => (
                 <TableRow key={unit.id}>
-                  <TableCell className="font-mono">{unit.externalId}</TableCell>
+                  <TableCell className="font-medium">{unit.name}</TableCell>
+                  <TableCell className="font-mono text-xs max-w-[200px] truncate" title={unit.externalId}>
+                    {unit.externalId}
+                  </TableCell>
                   <TableCell>
                     <Badge variant="outline">{unit.format}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">{unit.platform}</Badge>
                   </TableCell>
                   <TableCell>${unit.bidFloor.toFixed(2)}</TableCell>
                   <TableCell>
@@ -137,14 +154,19 @@ export default async function UnityDetailPage({
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">Edit</Button>
+                    <AdUnitActions
+                      sourceId={source.id}
+                      sourceType="unity"
+                      unitId={unit.id}
+                      unitName={unit.name}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
               {source.adUnits.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    No ad units configured. Sync placements to import from Unity.
+                  <TableCell colSpan={7} className="text-center text-muted-foreground">
+                    No ad units configured. Add your first ad unit to start receiving bids.
                   </TableCell>
                 </TableRow>
               )}

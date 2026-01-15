@@ -103,6 +103,36 @@ export function AddAdUnitButton({ sourceId, sourceType }: AddAdUnitButtonProps) 
     height: '',
   })
 
+  // Get labels based on source type
+  const getLabels = () => {
+    switch (sourceType) {
+      case 'unity':
+        return {
+          title: 'Add Unity Ad Unit',
+          externalIdLabel: 'Placement ID',
+          externalIdPlaceholder: 'Rewarded_Android',
+          externalIdHelp: 'Unity Placement ID (alphanumeric and underscores)',
+        }
+      case 'fyber':
+        return {
+          title: 'Add Fyber Ad Unit',
+          externalIdLabel: 'Spot ID',
+          externalIdPlaceholder: '123456',
+          externalIdHelp: 'Fyber Spot ID (numeric)',
+        }
+      case 'gam':
+      default:
+        return {
+          title: 'Add GAM Ad Unit',
+          externalIdLabel: 'GAM Ad Unit Path',
+          externalIdPlaceholder: '/21728129623,22755403919/app_banner_1_00',
+          externalIdHelp: 'Format: /network_code/ad_unit_path',
+        }
+    }
+  }
+
+  const labels = getLabels()
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setIsSubmitting(true)
@@ -148,7 +178,7 @@ export function AddAdUnitButton({ sourceId, sourceType }: AddAdUnitButtonProps) 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-background border rounded-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-semibold mb-4">Add GAM Ad Unit</h3>
+        <h3 className="text-lg font-semibold mb-4">{labels.title}</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Name</label>
@@ -164,16 +194,16 @@ export function AddAdUnitButton({ sourceId, sourceType }: AddAdUnitButtonProps) 
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">GAM Ad Unit Path</label>
+            <label className="block text-sm font-medium mb-1">{labels.externalIdLabel}</label>
             <input
               type="text"
               value={formData.externalId}
               onChange={(e) => setFormData({ ...formData, externalId: e.target.value })}
               className="w-full border rounded px-3 py-2 bg-background font-mono text-sm"
-              placeholder="/21728129623,22755403919/app_banner_1_00"
+              placeholder={labels.externalIdPlaceholder}
               required
             />
-            <p className="text-xs text-muted-foreground mt-1">Format: /network_code/ad_unit_path</p>
+            <p className="text-xs text-muted-foreground mt-1">{labels.externalIdHelp}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
