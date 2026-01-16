@@ -29,6 +29,12 @@ export default function NewUnityPage() {
           config: {
             gameIdAndroid: formData.get("gameIdAndroid"),
             gameIdIos: formData.get("gameIdIos"),
+            // Report API
+            apiKey: formData.get("apiKey") || null,
+            organizationCoreId: formData.get("organizationCoreId") || null,
+            // Auto Create Ad Source
+            keyId: formData.get("keyId") || null,
+            secretKey: formData.get("secretKey") || null,
           },
         }),
       })
@@ -92,6 +98,45 @@ export default function NewUnityPage() {
               <p className="text-sm text-muted-foreground">
                 Lower number = higher priority in waterfall
               </p>
+            </div>
+
+            {/* Report API Section */}
+            <div className="border-t pt-4 mt-4">
+              <h3 className="font-medium mb-3">Report API (Optional)</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Required for revenue reporting. Find these in Unity Dashboard.
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="apiKey">API Key</Label>
+                  <Input id="apiKey" name="apiKey" placeholder="Unity API Key" />
+                  <p className="text-xs text-muted-foreground">Settings → API Key</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="organizationCoreId">Organization Core ID</Label>
+                  <Input id="organizationCoreId" name="organizationCoreId" placeholder="Organization Core ID" />
+                  <p className="text-xs text-muted-foreground">Organization Settings</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Auto Create Ad Source Section */}
+            <div className="border-t pt-4 mt-4">
+              <h3 className="font-medium mb-3">Auto Create Ad Source (Optional)</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Required for automatic ad source creation. Find these in Unity Dashboard → Service Account → Add Key.
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="keyId">Key ID</Label>
+                  <Input id="keyId" name="keyId" placeholder="Service Account Key ID" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="secretKey">Secret Key</Label>
+                  <Input id="secretKey" name="secretKey" type="password" placeholder="Service Account Secret Key" />
+                  <p className="text-xs text-muted-foreground">Save it when created - won't be visible later</p>
+                </div>
+              </div>
             </div>
 
             <div className="bg-purple-50 p-4 rounded-lg text-sm">

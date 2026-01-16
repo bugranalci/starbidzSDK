@@ -78,6 +78,44 @@ export default async function FyberDetailPage({
               <span className="text-muted-foreground">Created</span>
               <span>{source.createdAt.toLocaleDateString()}</span>
             </div>
+
+            {/* Report API Section */}
+            {(source.fyberConfig?.publisherId || source.fyberConfig?.consumerKey || source.fyberConfig?.consumerSecret) && (
+              <>
+                <div className="border-t pt-4 mt-2">
+                  <span className="text-sm font-medium">Report API</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Publisher ID</span>
+                  <code className="font-mono">{source.fyberConfig?.publisherId || "-"}</code>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Consumer Key</span>
+                  <code className="font-mono">{source.fyberConfig?.consumerKey || "-"}</code>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Consumer Secret</span>
+                  <code className="font-mono">{source.fyberConfig?.consumerSecret ? "********" : "-"}</code>
+                </div>
+              </>
+            )}
+
+            {/* Auto Create Ad Source Section */}
+            {(source.fyberConfig?.clientId || source.fyberConfig?.clientSecret) && (
+              <>
+                <div className="border-t pt-4 mt-2">
+                  <span className="text-sm font-medium">Auto Create Ad Source</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Client ID</span>
+                  <code className="font-mono">{source.fyberConfig?.clientId || "-"}</code>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Client Secret</span>
+                  <code className="font-mono">{source.fyberConfig?.clientSecret ? "********" : "-"}</code>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 

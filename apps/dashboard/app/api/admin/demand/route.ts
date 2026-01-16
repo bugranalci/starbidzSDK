@@ -12,11 +12,24 @@ const gamConfigSchema = z.object({
 const unityConfigSchema = z.object({
   gameIdAndroid: z.string().min(1),
   gameIdIos: z.string().min(1),
+  // Report API credentials (optional)
+  apiKey: z.string().nullable().optional(),
+  organizationCoreId: z.string().nullable().optional(),
+  // Auto Create Ad Source credentials (optional)
+  keyId: z.string().nullable().optional(),
+  secretKey: z.string().nullable().optional(),
 })
 
 const fyberConfigSchema = z.object({
   appIdAndroid: z.string().min(1),
   appIdIos: z.string().min(1),
+  // Report API credentials (optional)
+  publisherId: z.string().nullable().optional(),
+  consumerKey: z.string().nullable().optional(),
+  consumerSecret: z.string().nullable().optional(),
+  // Auto Create Ad Source credentials (optional)
+  clientId: z.string().nullable().optional(),
+  clientSecret: z.string().nullable().optional(),
 })
 
 // ORTB still needs server-side config for programmatic bidding
@@ -112,15 +125,39 @@ export async function GET() {
 }
 
 /**
- * Encrypt sensitive credential fields before storing (only for ORTB now)
+ * Encrypt sensitive credential fields before storing
  */
 function encryptCredentials(type: string, config: Record<string, unknown>): Record<string, unknown> {
   const encrypted = { ...config }
 
-  // Only ORTB has sensitive credentials now
-  if (type === 'ORTB' && isEncryptionConfigured()) {
+  if (!isEncryptionConfigured()) {
+    return encrypted
+  }
+
+  // ORTB sensitive credentials
+  if (type === 'ORTB') {
     if (encrypted.authValue && typeof encrypted.authValue === 'string') {
       encrypted.authValue = encrypt(encrypted.authValue)
+    }
+  }
+
+  // Unity sensitive credentials
+  if (type === 'UNITY') {
+    if (encrypted.apiKey && typeof encrypted.apiKey === 'string') {
+      encrypted.apiKey = encrypt(encrypted.apiKey)
+    }
+    if (encrypted.secretKey && typeof encrypted.secretKey === 'string') {
+      encrypted.secretKey = encrypt(encrypted.secretKey)
+    }
+  }
+
+  // Fyber sensitive credentials
+  if (type === 'FYBER') {
+    if (encrypted.consumerSecret && typeof encrypted.consumerSecret === 'string') {
+      encrypted.consumerSecret = encrypt(encrypted.consumerSecret)
+    }
+    if (encrypted.clientSecret && typeof encrypted.clientSecret === 'string') {
+      encrypted.clientSecret = encrypt(encrypted.clientSecret)
     }
   }
 
@@ -133,12 +170,38 @@ function encryptCredentials(type: string, config: Record<string, unknown>): Reco
 function maskCredentials(demandSource: Record<string, unknown>): Record<string, unknown> {
   const masked = { ...demandSource }
 
-  // Only ORTB has sensitive data to mask
+  // ORTB sensitive data
   if (masked.ortbConfig && typeof masked.ortbConfig === 'object') {
     const ortbConfig = masked.ortbConfig as Record<string, unknown>
     if (ortbConfig.authValue) {
-      masked.ortbConfig = { ...ortbConfig, authValue: '***ENCRYPTED***' }
+      masked.ortbConfig = { ...ortbConfig, authValue: '********' }
     }
+  }
+
+  // Unity sensitive data
+  if (masked.unityConfig && typeof masked.unityConfig === 'object') {
+    const unityConfig = masked.unityConfig as Record<string, unknown>
+    const maskedUnityConfig = { ...unityConfig }
+    if (maskedUnityConfig.apiKey) {
+      maskedUnityConfig.apiKey = '********'
+    }
+    if (maskedUnityConfig.secretKey) {
+      maskedUnityConfig.secretKey = '********'
+    }
+    masked.unityConfig = maskedUnityConfig
+  }
+
+  // Fyber sensitive data
+  if (masked.fyberConfig && typeof masked.fyberConfig === 'object') {
+    const fyberConfig = masked.fyberConfig as Record<string, unknown>
+    const maskedFyberConfig = { ...fyberConfig }
+    if (maskedFyberConfig.consumerSecret) {
+      maskedFyberConfig.consumerSecret = '********'
+    }
+    if (maskedFyberConfig.clientSecret) {
+      maskedFyberConfig.clientSecret = '********'
+    }
+    masked.fyberConfig = maskedFyberConfig
   }
 
   return masked

@@ -139,6 +139,14 @@ model UnityConfig {
   demandSource   DemandSource @relation(fields: [demandSourceId], references: [id], onDelete: Cascade)
   gameIdAndroid  String       // Unity Game ID for Android
   gameIdIos      String       // Unity Game ID for iOS
+
+  // Report API credentials
+  apiKey             String?  // Unity Dashboard → Settings → API Key
+  organizationCoreId String?  // Unity Dashboard → Organization Settings
+
+  // Auto Create Ad Source credentials
+  keyId              String?  // Unity Dashboard → Service Account → Add Key
+  secretKey          String?  // Unity Dashboard → Service Account → Add Key (save it, won't be visible later)
 }
 
 // Fyber Configuration - Client-side
@@ -148,6 +156,15 @@ model FyberConfig {
   demandSource   DemandSource @relation(fields: [demandSourceId], references: [id], onDelete: Cascade)
   appIdAndroid   String       // Fyber App ID for Android
   appIdIos       String       // Fyber App ID for iOS
+
+  // Report API credentials
+  publisherId    String?      // Fyber Dashboard → User Profile
+  consumerKey    String?      // Fyber Dashboard → User Profile
+  consumerSecret String?      // Fyber Dashboard → User Profile
+
+  // Auto Create Ad Source credentials (optional)
+  clientId       String?      // Fyber Dashboard → Management API - Credentials
+  clientSecret   String?      // Fyber Dashboard → Management API - Credentials
 }
 
 // OpenRTB DSP Configuration

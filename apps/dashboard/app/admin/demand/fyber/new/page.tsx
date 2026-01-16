@@ -29,6 +29,13 @@ export default function NewFyberPage() {
           config: {
             appIdAndroid: formData.get("appIdAndroid"),
             appIdIos: formData.get("appIdIos"),
+            // Report API
+            publisherId: formData.get("publisherId") || null,
+            consumerKey: formData.get("consumerKey") || null,
+            consumerSecret: formData.get("consumerSecret") || null,
+            // Auto Create Ad Source
+            clientId: formData.get("clientId") || null,
+            clientSecret: formData.get("clientSecret") || null,
           },
         }),
       })
@@ -92,6 +99,46 @@ export default function NewFyberPage() {
               <p className="text-sm text-muted-foreground">
                 Lower number = higher priority in waterfall
               </p>
+            </div>
+
+            {/* Report API Section */}
+            <div className="border-t pt-4 mt-4">
+              <h3 className="font-medium mb-3">Report API (Optional)</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Required for revenue reporting. Find these in Fyber Dashboard → User Profile.
+              </p>
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="publisherId">Publisher ID</Label>
+                  <Input id="publisherId" name="publisherId" placeholder="Publisher ID" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="consumerKey">Consumer Key</Label>
+                  <Input id="consumerKey" name="consumerKey" placeholder="Consumer Key" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="consumerSecret">Consumer Secret</Label>
+                  <Input id="consumerSecret" name="consumerSecret" type="password" placeholder="Consumer Secret" />
+                </div>
+              </div>
+            </div>
+
+            {/* Auto Create Ad Source Section */}
+            <div className="border-t pt-4 mt-4">
+              <h3 className="font-medium mb-3">Auto Create Ad Source (Optional)</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Optional for automatic ad source creation. Find these in Fyber Dashboard → Management API - Credentials.
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="clientId">Client ID</Label>
+                  <Input id="clientId" name="clientId" placeholder="Client ID" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="clientSecret">Client Secret</Label>
+                  <Input id="clientSecret" name="clientSecret" type="password" placeholder="Client Secret" />
+                </div>
+              </div>
             </div>
 
             <div className="bg-orange-50 p-4 rounded-lg text-sm">

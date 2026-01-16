@@ -78,6 +78,40 @@ export default async function UnityDetailPage({
               <span className="text-muted-foreground">Created</span>
               <span>{source.createdAt.toLocaleDateString()}</span>
             </div>
+
+            {/* Report API Section */}
+            {(source.unityConfig?.apiKey || source.unityConfig?.organizationCoreId) && (
+              <>
+                <div className="border-t pt-4 mt-2">
+                  <span className="text-sm font-medium">Report API</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">API Key</span>
+                  <code className="font-mono">{source.unityConfig?.apiKey ? "********" : "-"}</code>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Organization Core ID</span>
+                  <code className="font-mono">{source.unityConfig?.organizationCoreId || "-"}</code>
+                </div>
+              </>
+            )}
+
+            {/* Auto Create Ad Source Section */}
+            {(source.unityConfig?.keyId || source.unityConfig?.secretKey) && (
+              <>
+                <div className="border-t pt-4 mt-2">
+                  <span className="text-sm font-medium">Auto Create Ad Source</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Key ID</span>
+                  <code className="font-mono">{source.unityConfig?.keyId || "-"}</code>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Secret Key</span>
+                  <code className="font-mono">{source.unityConfig?.secretKey ? "********" : "-"}</code>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
