@@ -13,14 +13,14 @@ import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import com.applovin.mediation.adapter.listeners.MaxInterstitialAdapterListener
-import io.starbidz.core.StarbidzAd
-import io.starbidz.core.Starbidz
+import com.starbidz.sdk.StarbidzAd
+import com.starbidz.sdk.Starbidz
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @SuppressLint("SetJavaScriptEnabled")
-internal class StarbidInterstitialAd(
+class StarbidInterstitialAd(
     private val context: Context,
     private val ad: StarbidzAd,
     private val listener: MaxInterstitialAdapterListener

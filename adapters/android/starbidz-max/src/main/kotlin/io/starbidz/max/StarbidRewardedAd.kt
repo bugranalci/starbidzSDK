@@ -17,14 +17,14 @@ import android.widget.ImageButton
 import android.widget.TextView
 import com.applovin.mediation.MaxReward
 import com.applovin.mediation.adapter.listeners.MaxRewardedAdapterListener
-import io.starbidz.core.StarbidzAd
-import io.starbidz.core.Starbidz
+import com.starbidz.sdk.StarbidzAd
+import com.starbidz.sdk.Starbidz
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @SuppressLint("SetJavaScriptEnabled")
-internal class StarbidRewardedAd(
+class StarbidRewardedAd(
     private val context: Context,
     private val ad: StarbidzAd,
     private val listener: MaxRewardedAdapterListener
@@ -193,7 +193,12 @@ internal class StarbidRewardedAd(
         private fun grantReward() {
             if (!rewardGranted) {
                 rewardGranted = true
-                listener.onUserRewarded(MaxReward.DEFAULT_REWARD)
+                // Create reward with default values
+                val reward = object : MaxReward {
+                    override fun getAmount(): Int = 1
+                    override fun getLabel(): String = "reward"
+                }
+                listener.onUserRewarded(reward)
 
                 // Track completion
                 CoroutineScope(Dispatchers.IO).launch {
