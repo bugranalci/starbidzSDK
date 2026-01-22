@@ -135,10 +135,12 @@ function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; server
             <p className="text-sm text-gray-600">
               Add repositories to your project-level <code className="bg-gray-100 px-1 rounded">settings.gradle.kts</code>:
             </p>
-            <CodeBlock language="groovy">{`dependencyResolutionManagement {
+            <CodeBlock language="kotlin">{`dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
+
         // JitPack - for Starbidz SDK
         maven {
             url = uri("https://jitpack.io")
@@ -146,6 +148,7 @@ function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; server
                 includeGroupByRegex("com\\\\.github\\\\..*")
             }
         }
+
         // AppLovin SDK
         maven {
             url = uri("https://artifacts.applovin.com/android")
@@ -153,27 +156,38 @@ function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; server
                 includeGroup("com.applovin")
             }
         }
-    }
-}
 
-dependencies {
+        // Fyber SDK (Digital Turbine / DT Exchange)
+        maven {
+            url = uri("https://fyber.jfrog.io/artifactory/marketplace")
+            content {
+                includeGroup("com.fyber")
+            }
+        }
+    }
+}`}</CodeBlock>
+
+            <p className="text-sm text-gray-600 mt-4">
+              Add dependencies to your app-level <code className="bg-gray-100 px-1 rounded">build.gradle.kts</code>:
+            </p>
+            <CodeBlock language="kotlin">{`dependencies {
     // AppLovin MAX SDK
-    implementation 'com.applovin:applovin-sdk:13.0.1'
+    implementation("com.applovin:applovin-sdk:13.0.1")
 
     // Starbidz Core SDK
-    implementation 'com.github.bugranalci.starbidzSDK:starbidz:1.0.4'
+    implementation("com.github.bugranalci.starbidzSDK:starbidz:1.0.4")
 
     // Starbidz MAX Adapter
-    implementation 'com.github.bugranalci.starbidzSDK:starbidz-max:1.0.4'
+    implementation("com.github.bugranalci.starbidzSDK:starbidz-max:1.0.4")
 
     // Google IMA (for video ads)
-    implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
+    implementation("com.google.ads.interactivemedia.v3:interactivemedia:3.38.0")
 
     // Unity Ads
-    implementation 'com.unity3d.ads:unity-ads:4.16.5'
+    implementation("com.unity3d.ads:unity-ads:4.16.5")
 
     // Fyber (Digital Turbine / DT Exchange)
-    implementation 'com.fyber:marketplace-sdk:8.4.0'
+    implementation("com.fyber:marketplace-sdk:8.4.0")
 }`}</CodeBlock>
           </CardContent>
         </Card>
