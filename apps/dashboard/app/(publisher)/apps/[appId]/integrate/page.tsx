@@ -139,8 +139,20 @@ function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; server
     repositories {
         google()
         mavenCentral()
-        maven { url = uri("https://jitpack.io") }
-        maven { url = uri("https://artifacts.applovin.com/android") }
+        // JitPack - for Starbidz SDK
+        maven {
+            url = uri("https://jitpack.io")
+            content {
+                includeGroupByRegex("com\\\\.github\\\\..*")
+            }
+        }
+        // AppLovin SDK
+        maven {
+            url = uri("https://artifacts.applovin.com/android")
+            content {
+                includeGroup("com.applovin")
+            }
+        }
     }
 }
 
@@ -148,8 +160,11 @@ dependencies {
     // AppLovin MAX SDK
     implementation 'com.applovin:applovin-sdk:13.0.1'
 
-    // Starbidz SDK & Adapters (via JitPack)
-    implementation 'com.github.bugranalci:starbidzSDK:1.0.0'
+    // Starbidz Core SDK
+    implementation 'com.github.bugranalci.starbidzSDK:starbidz:1.0.4'
+
+    // Starbidz MAX Adapter
+    implementation 'com.github.bugranalci.starbidzSDK:starbidz-max:1.0.4'
 
     // Google IMA (for video ads)
     implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
@@ -207,7 +222,7 @@ dependencies {
                   <div className="mt-2 bg-gray-50 p-3 rounded space-y-2 text-sm">
                     <p><strong>Network Name:</strong> Starbidz</p>
                     <p><strong>Android Adapter Class:</strong></p>
-                    <code className="block bg-gray-100 p-2 rounded">io.starbidz.max.StarbidMediationAdapter</code>
+                    <code className="block bg-gray-100 p-2 rounded">com.applovin.mediation.adapters.StarbidMediationAdapter</code>
                   </div>
                 </div>
               </div>
