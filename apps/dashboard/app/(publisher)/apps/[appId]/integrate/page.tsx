@@ -174,11 +174,8 @@ function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; server
     // AppLovin MAX SDK
     implementation("com.applovin:applovin-sdk:13.0.1")
 
-    // Starbidz Core SDK
-    implementation("com.github.bugranalci.starbidzSDK:starbidz:1.0.4")
-
-    // Starbidz MAX Adapter
-    implementation("com.github.bugranalci.starbidzSDK:starbidz-max:1.0.4")
+    // Starbidz SDK (includes MAX adapter)
+    implementation("com.github.bugranalci:starbidzSDK:1.0.5")
 
     // Google IMA (for video ads)
     implementation("com.google.ads.interactivemedia.v3:interactivemedia:3.38.0")

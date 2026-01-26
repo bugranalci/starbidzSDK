@@ -41,6 +41,9 @@ dependencies {
     implementation(libs.moshi.kotlin)
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
+
+    // AppLovin MAX SDK - compileOnly so publishers must add it themselves
+    compileOnly(libs.applovin.sdk)
 }
 
 afterEvaluate {
