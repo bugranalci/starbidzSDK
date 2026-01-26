@@ -5,6 +5,8 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -43,6 +45,11 @@ import kotlinx.coroutines.Dispatchers;
 public class StarbidMediationAdapter extends MediationAdapterBase
         implements MaxAdViewAdapter, MaxInterstitialAdapter, MaxRewardedAdapter {
 
+    // Static initializer - runs when class is first loaded
+    static {
+        Log.d("StarbidAdapter", "🟢🟢🟢 StarbidMediationAdapter CLASS LOADED! 🟢🟢🟢");
+    }
+
     private static final String ADAPTER_VERSION = "1.0.0";
     private static final String SDK_VERSION = "1.0.0";
 
@@ -56,8 +63,11 @@ public class StarbidMediationAdapter extends MediationAdapterBase
     private StarbidInterstitialAd interstitialAd;
     private StarbidRewardedAd rewardedAd;
 
+    private static final String TAG = "StarbidAdapter";
+
     public StarbidMediationAdapter(AppLovinSdk sdk) {
         super(sdk);
+        Log.d(TAG, "🟢 StarbidMediationAdapter CONSTRUCTOR called!");
     }
 
     @Override
@@ -91,10 +101,25 @@ public class StarbidMediationAdapter extends MediationAdapterBase
     public void initialize(@NonNull MaxAdapterInitializationParameters parameters,
                            @Nullable Activity activity,
                            @NonNull OnCompletionListener onCompletionListener) {
+        Log.d(TAG, "🟢 INITIALIZE called!");
+
+        // Show toast for visual debugging (since logcat is not available)
+        Context toastContext = (activity != null) ? activity : getApplicationContext();
+        mainHandler.post(() -> {
+            try {
+                Toast.makeText(toastContext, "Starbidz Adapter Initialize!", Toast.LENGTH_LONG).show();
+            } catch (Exception e) {
+                Log.e(TAG, "Toast failed", e);
+            }
+        });
+
         Bundle serverParams = parameters.getServerParameters();
         String appKey = serverParams.getString(PARAM_APP_KEY);
 
+        Log.d(TAG, "app_key: " + appKey);
+
         if (appKey == null || appKey.isEmpty()) {
+            Log.e(TAG, "Missing app_key!");
             onCompletionListener.onCompletion(InitializationStatus.INITIALIZED_FAILURE,
                     "Missing app_key parameter");
             return;
@@ -113,9 +138,11 @@ public class StarbidMediationAdapter extends MediationAdapterBase
             }
 
             Starbidz.INSTANCE.initialize(context, configBuilder.build());
+            Log.d(TAG, "Starbidz SDK initialized!");
         }
 
         onCompletionListener.onCompletion(InitializationStatus.INITIALIZED_SUCCESS, null);
+        Log.d(TAG, "Initialize completed successfully!");
     }
 
     @Override
