@@ -1,5 +1,9 @@
 # Starbidz SDK ProGuard rules for consumers
 
+# Keep AppLovin MAX Adapter (CRITICAL - MAX discovers adapters by reflection)
+-keep class com.applovin.mediation.adapters.StarbidMediationAdapter { *; }
+-keep class io.starbidz.max.** { *; }
+
 # Keep Starbidz public API
 -keep class com.starbidz.sdk.Starbidz { *; }
 -keep class com.starbidz.sdk.StarbidConfig { *; }
