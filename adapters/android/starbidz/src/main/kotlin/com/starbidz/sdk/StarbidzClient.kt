@@ -2,6 +2,7 @@ package com.starbidz.sdk
 
 import android.content.Context
 import android.os.Build
+import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.Dispatchers
@@ -186,8 +187,8 @@ internal class StarbidzClient(
 
 // Internal DTOs
 internal data class BidRequest(
-    val appKey: String,
-    val placementId: String,
+    @Json(name = "app_key") val appKey: String,
+    @Json(name = "placement_id") val placementId: String,
     val format: String,
     val width: Int?,
     val height: Int?,
@@ -203,7 +204,7 @@ internal data class DeviceInfo(
     val model: String,
     val ifa: String,
     val lmt: Boolean,
-    val connectionType: String
+    @Json(name = "connection_type") val connectionType: String
 )
 
 internal data class AppInfo(
@@ -222,7 +223,7 @@ internal data class Bid(
     val id: String,
     val price: Double,
     val currency: String,
-    val demandSource: String,
+    @Json(name = "demand_source") val demandSource: String,
     val creative: Creative,
     val nurl: String?,
     val burl: String?
