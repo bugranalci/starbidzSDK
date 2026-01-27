@@ -118,8 +118,21 @@ public class StarbidMediationAdapter extends MediationAdapterBase
 
         Log.d(TAG, "app_key: " + appKey);
 
+        // Debug: Show what appKey we received
+        final String debugAppKey = appKey;
+        mainHandler.post(() -> {
+            try {
+                Toast.makeText(toastContext, "app_key: " + (debugAppKey != null ? debugAppKey.substring(0, Math.min(15, debugAppKey.length())) + "..." : "NULL"), Toast.LENGTH_LONG).show();
+            } catch (Exception e) { }
+        });
+
         if (appKey == null || appKey.isEmpty()) {
             Log.e(TAG, "Missing app_key!");
+            mainHandler.post(() -> {
+                try {
+                    Toast.makeText(toastContext, "INIT FAILED: No app_key!", Toast.LENGTH_LONG).show();
+                } catch (Exception e) { }
+            });
             onCompletionListener.onCompletion(InitializationStatus.INITIALIZED_FAILURE,
                     "Missing app_key parameter");
             return;
@@ -129,16 +142,30 @@ public class StarbidMediationAdapter extends MediationAdapterBase
         Context context = (activity != null) ? activity : getApplicationContext();
 
         if (!Starbidz.INSTANCE.isInitialized()) {
-            StarbidConfig.Builder configBuilder = new StarbidConfig.Builder()
-                    .appKey(appKey)
-                    .testMode(parameters.isTesting());
+            try {
+                StarbidConfig.Builder configBuilder = new StarbidConfig.Builder()
+                        .appKey(appKey)
+                        .testMode(parameters.isTesting());
 
-            if (serverUrl != null && !serverUrl.isEmpty()) {
-                configBuilder.serverUrl(serverUrl);
+                if (serverUrl != null && !serverUrl.isEmpty()) {
+                    configBuilder.serverUrl(serverUrl);
+                }
+
+                Starbidz.INSTANCE.initialize(context, configBuilder.build());
+                Log.d(TAG, "Starbidz SDK initialized!");
+                mainHandler.post(() -> {
+                    try {
+                        Toast.makeText(toastContext, "Starbidz SDK Init SUCCESS!", Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) { }
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "SDK init failed", e);
+                mainHandler.post(() -> {
+                    try {
+                        Toast.makeText(toastContext, "SDK Init Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    } catch (Exception ex) { }
+                });
             }
-
-            Starbidz.INSTANCE.initialize(context, configBuilder.build());
-            Log.d(TAG, "Starbidz SDK initialized!");
         }
 
         onCompletionListener.onCompletion(InitializationStatus.INITIALIZED_SUCCESS, null);
