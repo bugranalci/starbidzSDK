@@ -5,6 +5,10 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
+import android.widget.Toast;
+
+import org.json.JSONObject;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -43,6 +47,11 @@ import kotlinx.coroutines.Dispatchers;
 public class StarbidMediationAdapter extends MediationAdapterBase
         implements MaxAdViewAdapter, MaxInterstitialAdapter, MaxRewardedAdapter {
 
+    // Static initializer - runs when class is first loaded
+    static {
+        Log.d("StarbidAdapter", "🟢🟢🟢 StarbidMediationAdapter CLASS LOADED! 🟢🟢🟢");
+    }
+
     private static final String ADAPTER_VERSION = "1.0.0";
     private static final String SDK_VERSION = "1.0.0";
 
@@ -56,8 +65,11 @@ public class StarbidMediationAdapter extends MediationAdapterBase
     private StarbidInterstitialAd interstitialAd;
     private StarbidRewardedAd rewardedAd;
 
+    private static final String TAG = "StarbidAdapter";
+
     public StarbidMediationAdapter(AppLovinSdk sdk) {
         super(sdk);
+        Log.d(TAG, "🟢 StarbidMediationAdapter CONSTRUCTOR called!");
     }
 
     @Override
@@ -91,31 +103,95 @@ public class StarbidMediationAdapter extends MediationAdapterBase
     public void initialize(@NonNull MaxAdapterInitializationParameters parameters,
                            @Nullable Activity activity,
                            @NonNull OnCompletionListener onCompletionListener) {
-        Bundle serverParams = parameters.getServerParameters();
-        String appKey = serverParams.getString(PARAM_APP_KEY);
+        Log.d(TAG, "🟢 INITIALIZE called!");
 
-        if (appKey == null || appKey.isEmpty()) {
-            onCompletionListener.onCompletion(InitializationStatus.INITIALIZED_FAILURE,
-                    "Missing app_key parameter");
-            return;
-        }
-
-        String serverUrl = serverParams.getString(PARAM_SERVER_URL);
-        Context context = (activity != null) ? activity : getApplicationContext();
-
-        if (!Starbidz.INSTANCE.isInitialized()) {
-            StarbidConfig.Builder configBuilder = new StarbidConfig.Builder()
-                    .appKey(appKey)
-                    .testMode(parameters.isTesting());
-
-            if (serverUrl != null && !serverUrl.isEmpty()) {
-                configBuilder.serverUrl(serverUrl);
+        // Show toast for visual debugging
+        Context toastContext = (activity != null) ? activity : getApplicationContext();
+        mainHandler.post(() -> {
+            try {
+                Toast.makeText(toastContext, "Starbidz Adapter Initialize!", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Log.e(TAG, "Toast failed", e);
             }
+        });
 
-            Starbidz.INSTANCE.initialize(context, configBuilder.build());
+        Bundle serverParams = parameters.getServerParameters();
+
+        // DEBUG: Log ALL keys in the Bundle
+        Log.d(TAG, "=== SERVER PARAMS BUNDLE ===");
+        StringBuilder bundleContent = new StringBuilder();
+        if (serverParams != null) {
+            for (String key : serverParams.keySet()) {
+                Object value = serverParams.get(key);
+                Log.d(TAG, "Key: " + key + " = " + value);
+                bundleContent.append(key).append("=").append(value).append("\n");
+            }
+        } else {
+            Log.e(TAG, "serverParams is NULL!");
+            bundleContent.append("NULL BUNDLE");
         }
 
+        String appKey = serverParams != null ? serverParams.getString(PARAM_APP_KEY) : null;
+        String serverUrl = serverParams != null ? serverParams.getString(PARAM_SERVER_URL) : null;
+
+        // Also try "custom_parameters" - MAX might nest them at network level
+        if ((appKey == null || appKey.isEmpty()) && serverParams != null) {
+            String customParams = serverParams.getString("custom_parameters");
+            Log.d(TAG, "custom_parameters from serverParams: " + customParams);
+            if (customParams != null) {
+                try {
+                    org.json.JSONObject json = new org.json.JSONObject(customParams);
+                    appKey = json.optString("app_key", null);
+                    if (serverUrl == null) {
+                        serverUrl = json.optString("server_url", null);
+                    }
+                    Log.d(TAG, "Parsed from custom_parameters - app_key: " + appKey);
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to parse custom_parameters", e);
+                }
+            }
+        }
+
+        Log.d(TAG, "Final app_key from initialize: " + appKey);
+
+        // Try to initialize SDK if we have app_key
+        if (appKey != null && !appKey.isEmpty()) {
+            Context context = (activity != null) ? activity : getApplicationContext();
+            if (!Starbidz.INSTANCE.isInitialized()) {
+                try {
+                    StarbidConfig.Builder configBuilder = new StarbidConfig.Builder()
+                            .appKey(appKey)
+                            .testMode(parameters.isTesting());
+
+                    if (serverUrl != null && !serverUrl.isEmpty()) {
+                        configBuilder.serverUrl(serverUrl);
+                    }
+
+                    Starbidz.INSTANCE.initialize(context, configBuilder.build());
+                    Log.d(TAG, "Starbidz SDK initialized in initialize()!");
+                    mainHandler.post(() -> {
+                        try {
+                            Toast.makeText(toastContext, "SDK Init SUCCESS!", Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) { }
+                    });
+                } catch (Exception e) {
+                    Log.e(TAG, "SDK init failed in initialize()", e);
+                    // Don't return failure - we'll try again in loadAdViewAd
+                }
+            }
+        } else {
+            Log.w(TAG, "No app_key in initialize() - will try to get from ad unit params in loadAdViewAd()");
+            mainHandler.post(() -> {
+                try {
+                    Toast.makeText(toastContext, "No app_key in init, will try in loadAd", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) { }
+            });
+        }
+
+        // ALWAYS return success - we'll initialize SDK in loadAdViewAd if needed
+        // This is because MAX puts custom params at ad unit level, not network level
         onCompletionListener.onCompletion(InitializationStatus.INITIALIZED_SUCCESS, null);
+        Log.d(TAG, "Initialize completed (SDK init deferred to loadAdViewAd if needed)");
     }
 
     @Override
@@ -123,41 +199,154 @@ public class StarbidMediationAdapter extends MediationAdapterBase
                              @NonNull MaxAdFormat adFormat,
                              @Nullable Activity activity,
                              @NonNull MaxAdViewAdapterListener listener) {
+        Log.d(TAG, "🟡 loadAdViewAd called!");
+
+        Context toastContext = (activity != null) ? activity : getApplicationContext();
+        mainHandler.post(() -> {
+            try {
+                Toast.makeText(toastContext, "Starbidz: Loading Banner...", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) { }
+        });
+
+        // Try to get params from multiple sources
         String placementId = parameters.getThirdPartyAdPlacementId();
+        Log.d(TAG, "placementId from getThirdPartyAdPlacementId: " + placementId);
+
+        // Also log custom parameters for debugging
+        Bundle serverParams = parameters.getServerParameters();
+        Bundle customParams = parameters.getCustomParameters();
+        Log.d(TAG, "serverParams: " + serverParams);
+        Log.d(TAG, "customParams: " + customParams);
+
+        // Debug custom parameters
+        if (customParams != null) {
+            for (String key : customParams.keySet()) {
+                Log.d(TAG, "customParam: " + key + " = " + customParams.get(key));
+            }
+        }
+
+        // Try to get placement_id from custom params if not set
+        if ((placementId == null || placementId.isEmpty()) && customParams != null) {
+            String pid = customParams.getString("placement_id");
+            if (pid != null && !pid.isEmpty()) {
+                placementId = pid;
+                Log.d(TAG, "Got placementId from customParams: " + placementId);
+            }
+        }
+
         if (placementId == null || placementId.isEmpty()) {
+            Log.e(TAG, "placementId is empty!");
+            mainHandler.post(() -> {
+                try {
+                    Toast.makeText(toastContext, "Starbidz: No placement_id!", Toast.LENGTH_LONG).show();
+                } catch (Exception e) { }
+            });
             listener.onAdViewAdLoadFailed(MaxAdapterError.INVALID_CONFIGURATION);
             return;
         }
 
         Context context = (activity != null) ? activity : getApplicationContext();
+
+        // Initialize SDK if not already initialized (fallback)
+        if (!Starbidz.INSTANCE.isInitialized()) {
+            Log.w(TAG, "SDK not initialized in loadAdViewAd, trying to initialize from customParams...");
+            String appKey = null;
+            String serverUrl = null;
+
+            if (customParams != null) {
+                appKey = customParams.getString("app_key");
+                serverUrl = customParams.getString("server_url");
+            }
+
+            if (appKey != null && !appKey.isEmpty()) {
+                try {
+                    StarbidConfig.Builder configBuilder = new StarbidConfig.Builder()
+                            .appKey(appKey)
+                            .testMode(false);
+                    if (serverUrl != null && !serverUrl.isEmpty()) {
+                        configBuilder.serverUrl(serverUrl);
+                    }
+                    Starbidz.INSTANCE.initialize(context, configBuilder.build());
+                    Log.d(TAG, "SDK initialized from loadAdViewAd!");
+                    mainHandler.post(() -> {
+                        try {
+                            Toast.makeText(toastContext, "SDK init from loadAd!", Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) { }
+                    });
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to init SDK in loadAdViewAd", e);
+                }
+            }
+        }
+
+        // Final check - if still not initialized, fail
+        if (!Starbidz.INSTANCE.isInitialized()) {
+            Log.e(TAG, "SDK still not initialized!");
+            mainHandler.post(() -> {
+                try {
+                    Toast.makeText(toastContext, "SDK NOT INIT - FAIL!", Toast.LENGTH_LONG).show();
+                } catch (Exception e) { }
+            });
+            listener.onAdViewAdLoadFailed(new MaxAdapterError(
+                    MaxAdapterError.ERROR_CODE_INVALID_CONFIGURATION,
+                    "Starbidz SDK is not initialized"
+            ));
+            return;
+        }
+
+        // Make final for lambda
+        final String finalPlacementId = placementId;
+
         int[] adSize = getAdSize(adFormat);
         int width = adSize[0];
         int height = adSize[1];
 
         executor.execute(() -> {
             try {
+                Log.d(TAG, "Calling Starbidz.requestBid...");
                 Object result = BuildersKt.runBlocking(
                         EmptyCoroutineContext.INSTANCE,
-                        (scope, cont) -> Starbidz.INSTANCE.requestBid(context, placementId, AdFormat.BANNER, width, height, cont)
+                        (scope, cont) -> Starbidz.INSTANCE.requestBid(context, finalPlacementId, AdFormat.BANNER, width, height, cont)
                 );
+
+                Log.d(TAG, "requestBid result: " + result);
 
                 mainHandler.post(() -> {
                     if (result instanceof AdResult.Success) {
+                        Log.d(TAG, "Ad loaded successfully!");
+                        try {
+                            Toast.makeText(toastContext, "Starbidz: Ad Success!", Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) { }
                         bannerAd = new StarbidBannerAd(context, ((AdResult.Success) result).getAd(), width, height, listener);
                         bannerAd.load();
                     } else if (result instanceof AdResult.Error) {
+                        String errorMsg = ((AdResult.Error) result).getMessage();
+                        Log.e(TAG, "Ad error: " + errorMsg);
+                        try {
+                            Toast.makeText(toastContext, "Starbidz Error: " + errorMsg, Toast.LENGTH_LONG).show();
+                        } catch (Exception e) { }
                         listener.onAdViewAdLoadFailed(new MaxAdapterError(
                                 MaxAdapterError.ERROR_CODE_NO_FILL,
-                                ((AdResult.Error) result).getMessage()
+                                errorMsg
                         ));
                     } else {
+                        Log.e(TAG, "Unknown result type: " + result);
+                        try {
+                            Toast.makeText(toastContext, "Starbidz: No Fill", Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) { }
                         listener.onAdViewAdLoadFailed(MaxAdapterError.NO_FILL);
                     }
                 });
             } catch (Exception e) {
-                mainHandler.post(() -> listener.onAdViewAdLoadFailed(
+                Log.e(TAG, "Exception in loadAdViewAd", e);
+                mainHandler.post(() -> {
+                    try {
+                        Toast.makeText(toastContext, "Starbidz Exception: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    } catch (Exception ex) { }
+                    listener.onAdViewAdLoadFailed(
                         new MaxAdapterError(MaxAdapterError.ERROR_CODE_INTERNAL_ERROR, e.getMessage())
-                ));
+                    );
+                });
             }
         });
     }
