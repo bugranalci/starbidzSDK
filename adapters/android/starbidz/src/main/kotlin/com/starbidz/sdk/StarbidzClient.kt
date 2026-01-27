@@ -62,7 +62,10 @@ internal class StarbidzClient(
             val response = client.newCall(request).execute()
 
             if (!response.isSuccessful) {
-                return@withContext AdResult.Error("HTTP ${response.code}", response.code)
+                val errorBody = response.body?.string() ?: "No error body"
+                android.util.Log.e("StarbidzClient", "HTTP ${response.code}: $errorBody")
+                android.util.Log.d("StarbidzClient", "Request was: $jsonBody")
+                return@withContext AdResult.Error("HTTP ${response.code}: $errorBody", response.code)
             }
 
             val responseBody = response.body?.string()
