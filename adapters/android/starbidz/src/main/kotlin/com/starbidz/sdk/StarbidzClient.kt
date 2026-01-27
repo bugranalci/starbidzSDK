@@ -204,7 +204,7 @@ internal data class DeviceInfo(
     val model: String,
     val ifa: String,
     val lmt: Boolean,
-    @Json(name = "connection_type") val connectionType: String
+    val connectionType: String  // Server expects camelCase
 )
 
 internal data class AppInfo(
