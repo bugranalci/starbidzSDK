@@ -7,7 +7,7 @@ data class StarbidConfig(
     val requestTimeoutMs: Long = DEFAULT_TIMEOUT_MS
 ) {
     companion object {
-        const val DEFAULT_SERVER_URL = "https://bid.starbidz.io"
+        const val DEFAULT_SERVER_URL = "https://api.starbidz.com"
         const val DEFAULT_TIMEOUT_MS = 5000L
     }
 
