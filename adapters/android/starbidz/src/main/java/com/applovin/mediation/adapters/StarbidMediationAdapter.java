@@ -8,6 +8,8 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.json.JSONObject;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -114,9 +116,47 @@ public class StarbidMediationAdapter extends MediationAdapterBase
         });
 
         Bundle serverParams = parameters.getServerParameters();
-        String appKey = serverParams.getString(PARAM_APP_KEY);
 
-        Log.d(TAG, "app_key: " + appKey);
+        // DEBUG: Log ALL keys in the Bundle
+        Log.d(TAG, "=== SERVER PARAMS BUNDLE ===");
+        StringBuilder bundleContent = new StringBuilder();
+        if (serverParams != null) {
+            for (String key : serverParams.keySet()) {
+                Object value = serverParams.get(key);
+                Log.d(TAG, "Key: " + key + " = " + value);
+                bundleContent.append(key).append("=").append(value).append("\n");
+            }
+        } else {
+            Log.e(TAG, "serverParams is NULL!");
+            bundleContent.append("NULL BUNDLE");
+        }
+
+        final String bundleDebug = bundleContent.toString();
+        mainHandler.post(() -> {
+            try {
+                Toast.makeText(toastContext, "Bundle: " + bundleDebug.substring(0, Math.min(100, bundleDebug.length())), Toast.LENGTH_LONG).show();
+            } catch (Exception e) { }
+        });
+
+        String appKey = serverParams != null ? serverParams.getString(PARAM_APP_KEY) : null;
+
+        // Also try "custom_parameters" - MAX might nest them
+        if ((appKey == null || appKey.isEmpty()) && serverParams != null) {
+            String customParams = serverParams.getString("custom_parameters");
+            Log.d(TAG, "custom_parameters: " + customParams);
+            if (customParams != null) {
+                try {
+                    // Parse JSON
+                    org.json.JSONObject json = new org.json.JSONObject(customParams);
+                    appKey = json.optString("app_key", null);
+                    Log.d(TAG, "Parsed app_key from custom_parameters: " + appKey);
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to parse custom_parameters", e);
+                }
+            }
+        }
+
+        Log.d(TAG, "Final app_key: " + appKey);
 
         // Debug: Show what appKey we received
         final String debugAppKey = appKey;
@@ -160,11 +200,16 @@ public class StarbidMediationAdapter extends MediationAdapterBase
                 });
             } catch (Exception e) {
                 Log.e(TAG, "SDK init failed", e);
+                final String errorMsg = e.getMessage();
                 mainHandler.post(() -> {
                     try {
-                        Toast.makeText(toastContext, "SDK Init Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(toastContext, "SDK Init Error: " + errorMsg, Toast.LENGTH_LONG).show();
                     } catch (Exception ex) { }
                 });
+                // IMPORTANT: Return failure if SDK init throws exception
+                onCompletionListener.onCompletion(InitializationStatus.INITIALIZED_FAILURE,
+                        "SDK init error: " + errorMsg);
+                return;
             }
         }
 
@@ -186,8 +231,31 @@ public class StarbidMediationAdapter extends MediationAdapterBase
             } catch (Exception e) { }
         });
 
+        // Try to get params from multiple sources
         String placementId = parameters.getThirdPartyAdPlacementId();
-        Log.d(TAG, "placementId: " + placementId);
+        Log.d(TAG, "placementId from getThirdPartyAdPlacementId: " + placementId);
+
+        // Also log custom parameters for debugging
+        Bundle serverParams = parameters.getServerParameters();
+        Bundle customParams = parameters.getCustomParameters();
+        Log.d(TAG, "serverParams: " + serverParams);
+        Log.d(TAG, "customParams: " + customParams);
+
+        // Debug custom parameters
+        if (customParams != null) {
+            for (String key : customParams.keySet()) {
+                Log.d(TAG, "customParam: " + key + " = " + customParams.get(key));
+            }
+        }
+
+        // Try to get placement_id from custom params if not set
+        if ((placementId == null || placementId.isEmpty()) && customParams != null) {
+            String pid = customParams.getString("placement_id");
+            if (pid != null && !pid.isEmpty()) {
+                placementId = pid;
+                Log.d(TAG, "Got placementId from customParams: " + placementId);
+            }
+        }
 
         if (placementId == null || placementId.isEmpty()) {
             Log.e(TAG, "placementId is empty!");
@@ -201,6 +269,57 @@ public class StarbidMediationAdapter extends MediationAdapterBase
         }
 
         Context context = (activity != null) ? activity : getApplicationContext();
+
+        // Initialize SDK if not already initialized (fallback)
+        if (!Starbidz.INSTANCE.isInitialized()) {
+            Log.w(TAG, "SDK not initialized in loadAdViewAd, trying to initialize from customParams...");
+            String appKey = null;
+            String serverUrl = null;
+
+            if (customParams != null) {
+                appKey = customParams.getString("app_key");
+                serverUrl = customParams.getString("server_url");
+            }
+
+            if (appKey != null && !appKey.isEmpty()) {
+                try {
+                    StarbidConfig.Builder configBuilder = new StarbidConfig.Builder()
+                            .appKey(appKey)
+                            .testMode(false);
+                    if (serverUrl != null && !serverUrl.isEmpty()) {
+                        configBuilder.serverUrl(serverUrl);
+                    }
+                    Starbidz.INSTANCE.initialize(context, configBuilder.build());
+                    Log.d(TAG, "SDK initialized from loadAdViewAd!");
+                    mainHandler.post(() -> {
+                        try {
+                            Toast.makeText(toastContext, "SDK init from loadAd!", Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) { }
+                    });
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to init SDK in loadAdViewAd", e);
+                }
+            }
+        }
+
+        // Final check - if still not initialized, fail
+        if (!Starbidz.INSTANCE.isInitialized()) {
+            Log.e(TAG, "SDK still not initialized!");
+            mainHandler.post(() -> {
+                try {
+                    Toast.makeText(toastContext, "SDK NOT INIT - FAIL!", Toast.LENGTH_LONG).show();
+                } catch (Exception e) { }
+            });
+            listener.onAdViewAdLoadFailed(new MaxAdapterError(
+                    MaxAdapterError.ERROR_CODE_INVALID_CONFIGURATION,
+                    "Starbidz SDK is not initialized"
+            ));
+            return;
+        }
+
+        // Make final for lambda
+        final String finalPlacementId = placementId;
+
         int[] adSize = getAdSize(adFormat);
         int width = adSize[0];
         int height = adSize[1];
@@ -210,7 +329,7 @@ public class StarbidMediationAdapter extends MediationAdapterBase
                 Log.d(TAG, "Calling Starbidz.requestBid...");
                 Object result = BuildersKt.runBlocking(
                         EmptyCoroutineContext.INSTANCE,
-                        (scope, cont) -> Starbidz.INSTANCE.requestBid(context, placementId, AdFormat.BANNER, width, height, cont)
+                        (scope, cont) -> Starbidz.INSTANCE.requestBid(context, finalPlacementId, AdFormat.BANNER, width, height, cont)
                 );
 
                 Log.d(TAG, "requestBid result: " + result);
