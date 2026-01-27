@@ -65,7 +65,28 @@ internal class StarbidzClient(
                 val errorBody = response.body?.string() ?: "No error body"
                 android.util.Log.e("StarbidzClient", "HTTP ${response.code}: $errorBody")
                 android.util.Log.d("StarbidzClient", "Request was: $jsonBody")
-                return@withContext AdResult.Error("HTTP ${response.code}: $errorBody", response.code)
+
+                // Parse validation errors for readable message
+                val shortError = try {
+                    val json = org.json.JSONObject(errorBody)
+                    if (json.has("errors")) {
+                        val errors = json.getJSONArray("errors")
+                        if (errors.length() > 0) {
+                            val first = errors.getJSONObject(0)
+                            val path = first.optString("path", "unknown")
+                            val msg = first.optString("message", "validation error")
+                            "$path: $msg"
+                        } else "Validation error"
+                    } else if (json.has("message")) {
+                        json.getString("message")
+                    } else if (json.has("error")) {
+                        json.getString("error")
+                    } else errorBody.take(100)
+                } catch (e: Exception) {
+                    errorBody.take(100)
+                }
+
+                return@withContext AdResult.Error("HTTP ${response.code}: $shortError", response.code)
             }
 
             val responseBody = response.body?.string()
