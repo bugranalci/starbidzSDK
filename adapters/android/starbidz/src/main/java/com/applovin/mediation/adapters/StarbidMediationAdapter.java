@@ -105,11 +105,11 @@ public class StarbidMediationAdapter extends MediationAdapterBase
                            @NonNull OnCompletionListener onCompletionListener) {
         Log.d(TAG, "🟢 INITIALIZE called!");
 
-        // Show toast for visual debugging (since logcat is not available)
+        // Show toast for visual debugging
         Context toastContext = (activity != null) ? activity : getApplicationContext();
         mainHandler.post(() -> {
             try {
-                Toast.makeText(toastContext, "Starbidz Adapter Initialize!", Toast.LENGTH_LONG).show();
+                Toast.makeText(toastContext, "Starbidz Adapter Initialize!", Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
                 Log.e(TAG, "Toast failed", e);
             }
@@ -131,90 +131,67 @@ public class StarbidMediationAdapter extends MediationAdapterBase
             bundleContent.append("NULL BUNDLE");
         }
 
-        final String bundleDebug = bundleContent.toString();
-        mainHandler.post(() -> {
-            try {
-                Toast.makeText(toastContext, "Bundle: " + bundleDebug.substring(0, Math.min(100, bundleDebug.length())), Toast.LENGTH_LONG).show();
-            } catch (Exception e) { }
-        });
-
         String appKey = serverParams != null ? serverParams.getString(PARAM_APP_KEY) : null;
+        String serverUrl = serverParams != null ? serverParams.getString(PARAM_SERVER_URL) : null;
 
-        // Also try "custom_parameters" - MAX might nest them
+        // Also try "custom_parameters" - MAX might nest them at network level
         if ((appKey == null || appKey.isEmpty()) && serverParams != null) {
             String customParams = serverParams.getString("custom_parameters");
-            Log.d(TAG, "custom_parameters: " + customParams);
+            Log.d(TAG, "custom_parameters from serverParams: " + customParams);
             if (customParams != null) {
                 try {
-                    // Parse JSON
                     org.json.JSONObject json = new org.json.JSONObject(customParams);
                     appKey = json.optString("app_key", null);
-                    Log.d(TAG, "Parsed app_key from custom_parameters: " + appKey);
+                    if (serverUrl == null) {
+                        serverUrl = json.optString("server_url", null);
+                    }
+                    Log.d(TAG, "Parsed from custom_parameters - app_key: " + appKey);
                 } catch (Exception e) {
                     Log.e(TAG, "Failed to parse custom_parameters", e);
                 }
             }
         }
 
-        Log.d(TAG, "Final app_key: " + appKey);
+        Log.d(TAG, "Final app_key from initialize: " + appKey);
 
-        // Debug: Show what appKey we received
-        final String debugAppKey = appKey;
-        mainHandler.post(() -> {
-            try {
-                Toast.makeText(toastContext, "app_key: " + (debugAppKey != null ? debugAppKey.substring(0, Math.min(15, debugAppKey.length())) + "..." : "NULL"), Toast.LENGTH_LONG).show();
-            } catch (Exception e) { }
-        });
+        // Try to initialize SDK if we have app_key
+        if (appKey != null && !appKey.isEmpty()) {
+            Context context = (activity != null) ? activity : getApplicationContext();
+            if (!Starbidz.INSTANCE.isInitialized()) {
+                try {
+                    StarbidConfig.Builder configBuilder = new StarbidConfig.Builder()
+                            .appKey(appKey)
+                            .testMode(parameters.isTesting());
 
-        if (appKey == null || appKey.isEmpty()) {
-            Log.e(TAG, "Missing app_key!");
+                    if (serverUrl != null && !serverUrl.isEmpty()) {
+                        configBuilder.serverUrl(serverUrl);
+                    }
+
+                    Starbidz.INSTANCE.initialize(context, configBuilder.build());
+                    Log.d(TAG, "Starbidz SDK initialized in initialize()!");
+                    mainHandler.post(() -> {
+                        try {
+                            Toast.makeText(toastContext, "SDK Init SUCCESS!", Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) { }
+                    });
+                } catch (Exception e) {
+                    Log.e(TAG, "SDK init failed in initialize()", e);
+                    // Don't return failure - we'll try again in loadAdViewAd
+                }
+            }
+        } else {
+            Log.w(TAG, "No app_key in initialize() - will try to get from ad unit params in loadAdViewAd()");
             mainHandler.post(() -> {
                 try {
-                    Toast.makeText(toastContext, "INIT FAILED: No app_key!", Toast.LENGTH_LONG).show();
+                    Toast.makeText(toastContext, "No app_key in init, will try in loadAd", Toast.LENGTH_SHORT).show();
                 } catch (Exception e) { }
             });
-            onCompletionListener.onCompletion(InitializationStatus.INITIALIZED_FAILURE,
-                    "Missing app_key parameter");
-            return;
         }
 
-        String serverUrl = serverParams.getString(PARAM_SERVER_URL);
-        Context context = (activity != null) ? activity : getApplicationContext();
-
-        if (!Starbidz.INSTANCE.isInitialized()) {
-            try {
-                StarbidConfig.Builder configBuilder = new StarbidConfig.Builder()
-                        .appKey(appKey)
-                        .testMode(parameters.isTesting());
-
-                if (serverUrl != null && !serverUrl.isEmpty()) {
-                    configBuilder.serverUrl(serverUrl);
-                }
-
-                Starbidz.INSTANCE.initialize(context, configBuilder.build());
-                Log.d(TAG, "Starbidz SDK initialized!");
-                mainHandler.post(() -> {
-                    try {
-                        Toast.makeText(toastContext, "Starbidz SDK Init SUCCESS!", Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) { }
-                });
-            } catch (Exception e) {
-                Log.e(TAG, "SDK init failed", e);
-                final String errorMsg = e.getMessage();
-                mainHandler.post(() -> {
-                    try {
-                        Toast.makeText(toastContext, "SDK Init Error: " + errorMsg, Toast.LENGTH_LONG).show();
-                    } catch (Exception ex) { }
-                });
-                // IMPORTANT: Return failure if SDK init throws exception
-                onCompletionListener.onCompletion(InitializationStatus.INITIALIZED_FAILURE,
-                        "SDK init error: " + errorMsg);
-                return;
-            }
-        }
-
+        // ALWAYS return success - we'll initialize SDK in loadAdViewAd if needed
+        // This is because MAX puts custom params at ad unit level, not network level
         onCompletionListener.onCompletion(InitializationStatus.INITIALIZED_SUCCESS, null);
-        Log.d(TAG, "Initialize completed successfully!");
+        Log.d(TAG, "Initialize completed (SDK init deferred to loadAdViewAd if needed)");
     }
 
     @Override

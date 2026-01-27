@@ -175,7 +175,7 @@ function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; server
     implementation("com.applovin:applovin-sdk:13.0.1")
 
     // Starbidz SDK (includes MAX adapter)
-    implementation("com.github.bugranalci:starbidzSDK:1.0.5")
+    implementation("com.github.bugranalci:starbidzSDK:1.0.10")
 
     // Google IMA (for video ads)
     implementation("com.google.ads.interactivemedia.v3:interactivemedia:3.38.0")
@@ -471,7 +471,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-ads:23.6.0'
 
     // Starbidz SDK & Adapters (via JitPack)
-    implementation 'com.github.bugranalci:starbidzSDK:1.0.0'
+    implementation 'com.github.bugranalci:starbidzSDK:1.0.10'
 
     // Google IMA (for video ads)
     implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
@@ -644,7 +644,7 @@ dependencies {
     implementation 'com.ironsource.sdk:mediationsdk:8.7.0'
 
     // Starbidz SDK & Adapters (via JitPack)
-    implementation 'com.github.bugranalci:starbidzSDK:1.0.0'
+    implementation 'com.github.bugranalci:starbidzSDK:1.0.10'
 
     // Google IMA (for video ads)
     implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
