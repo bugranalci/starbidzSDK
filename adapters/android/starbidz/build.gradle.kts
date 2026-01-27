@@ -49,8 +49,8 @@ afterEvaluate {
             create<MavenPublication>("release") {
                 from(components["release"])
 
-                groupId = "com.github.bugranalci"
-                artifactId = "starbidzSDK"
+                groupId = project.property("STARBIDZ_GROUP").toString()
+                artifactId = "starbidz"
                 version = project.property("STARBIDZ_VERSION").toString()
 
                 pom {

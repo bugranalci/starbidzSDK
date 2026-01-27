@@ -8,4 +8,4 @@ before_install:
   - chmod +x adapters/android/gradlew
 
 install:
-  - adapters/android/gradlew -p adapters/android :starbidz:assembleRelease :starbidz:publishToMavenLocal -x test
+  - cd adapters/android && ./gradlew :starbidz:assembleRelease :starbidz:publishToMavenLocal :starbidz-max:assembleRelease :starbidz-max:publishToMavenLocal -x test
