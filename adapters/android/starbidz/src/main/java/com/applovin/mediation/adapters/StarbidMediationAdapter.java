@@ -150,8 +150,25 @@ public class StarbidMediationAdapter extends MediationAdapterBase
                              @NonNull MaxAdFormat adFormat,
                              @Nullable Activity activity,
                              @NonNull MaxAdViewAdapterListener listener) {
+        Log.d(TAG, "🟡 loadAdViewAd called!");
+
+        Context toastContext = (activity != null) ? activity : getApplicationContext();
+        mainHandler.post(() -> {
+            try {
+                Toast.makeText(toastContext, "Starbidz: Loading Banner...", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) { }
+        });
+
         String placementId = parameters.getThirdPartyAdPlacementId();
+        Log.d(TAG, "placementId: " + placementId);
+
         if (placementId == null || placementId.isEmpty()) {
+            Log.e(TAG, "placementId is empty!");
+            mainHandler.post(() -> {
+                try {
+                    Toast.makeText(toastContext, "Starbidz: No placement_id!", Toast.LENGTH_LONG).show();
+                } catch (Exception e) { }
+            });
             listener.onAdViewAdLoadFailed(MaxAdapterError.INVALID_CONFIGURATION);
             return;
         }
@@ -163,28 +180,50 @@ public class StarbidMediationAdapter extends MediationAdapterBase
 
         executor.execute(() -> {
             try {
+                Log.d(TAG, "Calling Starbidz.requestBid...");
                 Object result = BuildersKt.runBlocking(
                         EmptyCoroutineContext.INSTANCE,
                         (scope, cont) -> Starbidz.INSTANCE.requestBid(context, placementId, AdFormat.BANNER, width, height, cont)
                 );
 
+                Log.d(TAG, "requestBid result: " + result);
+
                 mainHandler.post(() -> {
                     if (result instanceof AdResult.Success) {
+                        Log.d(TAG, "Ad loaded successfully!");
+                        try {
+                            Toast.makeText(toastContext, "Starbidz: Ad Success!", Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) { }
                         bannerAd = new StarbidBannerAd(context, ((AdResult.Success) result).getAd(), width, height, listener);
                         bannerAd.load();
                     } else if (result instanceof AdResult.Error) {
+                        String errorMsg = ((AdResult.Error) result).getMessage();
+                        Log.e(TAG, "Ad error: " + errorMsg);
+                        try {
+                            Toast.makeText(toastContext, "Starbidz Error: " + errorMsg, Toast.LENGTH_LONG).show();
+                        } catch (Exception e) { }
                         listener.onAdViewAdLoadFailed(new MaxAdapterError(
                                 MaxAdapterError.ERROR_CODE_NO_FILL,
-                                ((AdResult.Error) result).getMessage()
+                                errorMsg
                         ));
                     } else {
+                        Log.e(TAG, "Unknown result type: " + result);
+                        try {
+                            Toast.makeText(toastContext, "Starbidz: No Fill", Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) { }
                         listener.onAdViewAdLoadFailed(MaxAdapterError.NO_FILL);
                     }
                 });
             } catch (Exception e) {
-                mainHandler.post(() -> listener.onAdViewAdLoadFailed(
+                Log.e(TAG, "Exception in loadAdViewAd", e);
+                mainHandler.post(() -> {
+                    try {
+                        Toast.makeText(toastContext, "Starbidz Exception: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    } catch (Exception ex) { }
+                    listener.onAdViewAdLoadFailed(
                         new MaxAdapterError(MaxAdapterError.ERROR_CODE_INTERNAL_ERROR, e.getMessage())
-                ));
+                    );
+                });
             }
         });
     }
