@@ -174,8 +174,11 @@ function AndroidIntegrationGuide({ app, serverUrl }: { app: AppWithUnits; server
     // AppLovin MAX SDK
     implementation("com.applovin:applovin-sdk:13.0.1")
 
-    // Starbidz SDK (includes MAX adapter)
-    implementation("com.github.bugranalci:starbidzSDK:1.0.13")
+    // Starbidz Core SDK
+    implementation("com.github.bugranalci.starbidzSDK:starbidz:1.0.15")
+
+    // Starbidz MAX Adapter
+    implementation("com.github.bugranalci.starbidzSDK:starbidz-max:1.0.15")
 
     // Google IMA (for video ads)
     implementation("com.google.ads.interactivemedia.v3:interactivemedia:3.38.0")
@@ -470,8 +473,11 @@ dependencies {
     // Google Mobile Ads SDK
     implementation 'com.google.android.gms:play-services-ads:23.6.0'
 
-    // Starbidz SDK & Adapters (via JitPack)
-    implementation 'com.github.bugranalci:starbidzSDK:1.0.11'
+    // Starbidz Core SDK
+    implementation 'com.github.bugranalci.starbidzSDK:starbidz:1.0.15'
+
+    // Starbidz AdMob Adapter (coming soon)
+    // implementation 'com.github.bugranalci.starbidzSDK:starbidz-admob:1.0.15'
 
     // Google IMA (for video ads)
     implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
@@ -643,8 +649,11 @@ dependencies {
     // ironSource LevelPlay SDK
     implementation 'com.ironsource.sdk:mediationsdk:8.7.0'
 
-    // Starbidz SDK & Adapters (via JitPack)
-    implementation 'com.github.bugranalci:starbidzSDK:1.0.11'
+    // Starbidz Core SDK
+    implementation 'com.github.bugranalci.starbidzSDK:starbidz:1.0.15'
+
+    // Starbidz LevelPlay Adapter (coming soon)
+    // implementation 'com.github.bugranalci.starbidzSDK:starbidz-levelplay:1.0.15'
 
     // Google IMA (for video ads)
     implementation 'com.google.ads.interactivemedia.v3:interactivemedia:3.38.0'
