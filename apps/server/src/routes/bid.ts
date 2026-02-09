@@ -78,7 +78,15 @@ const BidRequestSchema = t.Object({
 })
 
 const CreativeSchema = t.Object({
-  type: t.Union([t.Literal('html'), t.Literal('vast'), t.Literal('image')]),
+  type: t.Union([
+    t.Literal('html'),
+    t.Literal('vast'),
+    t.Literal('image'),
+    t.Literal('unity'),    // Unity Ads SDK
+    t.Literal('fyber'),    // Fyber SDK
+    t.Literal('gam'),      // Google Ad Manager
+    t.Literal('ortb')      // OpenRTB
+  ]),
   content: t.String(),
   width: t.Optional(t.Number()),
   height: t.Optional(t.Number())
